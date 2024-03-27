@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="klevu">
+        <job name="klevu_analytics_sync_orders"
+             instance="Klevu\AnalyticsOrderSync\Cron\SyncOrders"
+             method="execute">
+            <config_path>klevu/analytics_order_sync/cron_expr</config_path>
+        </job>
+        <job name="klevu_analytics_requeue_stuck_orders"
+             instance="Klevu\AnalyticsOrderSync\Cron\RequeueStuckOrders"
+             method="execute">
+            <schedule>0 * * * *</schedule>
+        </job>
+        <job name="klevu_analytics_remove_synced_order_history"
+             instance="Klevu\AnalyticsOrderSync\Cron\RemoveSyncedOrderHistory"
+             method="execute">
+            <schedule>0 0 * * *</schedule>
+        </job>
+    </group>
+</config>

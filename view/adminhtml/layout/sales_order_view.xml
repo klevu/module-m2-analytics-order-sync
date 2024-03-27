@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="sales_order_tabs">
+            <block class="Klevu\AnalyticsOrderSync\Block\Adminhtml\Order\View\Tab\OrderSyncHistory"
+                   name="klevu_analytics.order_sync_history">
+                <arguments>
+                    <argument name="escaper_view_model" xsi:type="object">Klevu\Analytics\ViewModel\Escaper</argument>
+                    <argument name="current_order_view_model" xsi:type="object">Klevu\Registry\ViewModel\CurrentOrder</argument>
+                    <argument name="sync_order_view_model" xsi:type="object">Klevu\AnalyticsOrderSync\ViewModel\SyncOrder</argument>
+                    <argument name="sync_order_history_view_model" xsi:type="object">Klevu\AnalyticsOrderSync\ViewModel\SyncOrderHistory</argument>
+                </arguments>
+            </block>
+
+            <action method="addTab">
+                <argument name="name" xsi:type="string">klevu_analytics_order_sync_history</argument>
+                <argument name="block" xsi:type="string">klevu_analytics.order_sync_history</argument>
+            </action>
+        </referenceBlock>
+    </body>
+</page>

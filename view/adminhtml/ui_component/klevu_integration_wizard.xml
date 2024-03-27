@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+
+    <fieldset name="klevu_analytics_integration">
+        <htmlContent name="klevu_analytics_integration_ordersync_statusmessages" sortOrder="10">
+            <argument name="block"
+                      xsi:type="object">Klevu\AnalyticsOrderSync\Block\Adminhtml\Config\Integration\StatusMessages</argument>
+        </htmlContent>
+
+        <htmlContent name="klevu_analytics_integration_ordersync_info" sortOrder="20">
+            <argument name="block"
+                      xsi:type="object">Klevu\AnalyticsOrderSync\Block\Adminhtml\Config\Integration\Info</argument>
+        </htmlContent>
+
+        <button name="klevu_analytics_integration_ordersync_skip" sortOrder="40">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="buttonClasses" xsi:type="string">action action-primary</item>
+                    <item name="actions" xsi:type="array">
+                        <item name="0" xsi:type="array">
+                            <item name="targetName" xsi:type="string">${ $.parentName }</item>
+                            <item name="actionName" xsi:type="string">continue</item>
+                            <item name="params" xsi:type="array">
+                                <item name="0" xsi:type="string">${ $.provider }:data.scope</item>
+                                <item name="1" xsi:type="string">${ $.provider }:data.scope_id</item>
+                            </item>
+                        </item>
+                    </item>
+                </item>
+            </argument>
+            <settings>
+                <title translate="true">Continue</title>
+            </settings>
+        </button>
+    </fieldset>
+</form>
+

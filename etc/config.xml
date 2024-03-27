@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <klevu>
+            <analytics_order_sync>
+                <enabled>1</enabled>
+                <cron_frequency>*/5 * * * *</cron_frequency>
+                <cron_expr>*/5 * * * *</cron_expr>
+                <exclude_status_from_sync/>
+                <ip_address_attribute>remote_ip</ip_address_attribute>
+                <max_batch_size/>
+                <sync_order_max_attempts>3</sync_order_max_attempts>
+                <requeue_processing_orders_after_minutes>15</requeue_processing_orders_after_minutes>
+                <remove_synced_order_history_after_days/>
+                <remove_error_order_history_after_days/>
+            </analytics_order_sync>
+        </klevu>
+    </default>
+</config>

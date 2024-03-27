@@ -1,0 +1,105 @@
+<?php
+
+/**
+ * Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details.
+ */
+
+declare(strict_types=1);
+
+use Klevu\Analytics\ViewModel\Escaper as EscaperViewModel;
+use Klevu\AnalyticsOrderSync\Block\Adminhtml\Order\View\Tab\OrderSyncHistory as OrderSyncHistoryBlock;
+use Klevu\AnalyticsOrderSync\Model\Source\SyncOrder\Statuses;
+use Klevu\AnalyticsOrderSync\ViewModel\SyncOrder as SyncOrderViewModel;
+use Klevu\AnalyticsOrderSync\ViewModel\SyncOrderHistory as SyncOrderHistoryViewModel;
+use Klevu\Registry\ViewModel\CurrentOrder as CurrentOrderViewModel;
+
+// phpcs:ignore SlevomatCodingStandard.Commenting.InlineDocCommentDeclaration.MissingVariable
+/** @var OrderSyncHistoryBlock $block */
+/** @var EscaperViewModel $escaperViewModel */
+$escaperViewModel = $block->getData('escaper_view_model');
+/** @var CurrentOrderViewModel $currentOrderViewModel */
+$currentOrderViewModel = $block->getData('current_order_view_model');
+/** @var SyncOrderViewModel $syncOrderViewModel */
+$syncOrderViewModel = $block->getData('sync_order_view_model');
+/** @var SyncOrderHistoryViewModel $syncOrderHistoryViewModel */
+$syncOrderHistoryViewModel = $block->getData('sync_order_history_view_model');
+
+$escaper = $escaperViewModel->getEscaper();
+$currentOrder = $currentOrderViewModel->getCurrentOrder();
+$orderId = (int)$currentOrder?->getEntityId();
+$syncOrderRecord = $syncOrderViewModel->getSyncOrderRecordForOrderId($orderId);
+$syncOrderHistoryRecords = $syncOrderHistoryViewModel->getSyncOrderHistoryRecordsForSyncOrderId(
+    $syncOrderRecord?->getEntityId() ?? 0,
+);
+?>
+<div id="klevu_sync_order_history_block" class="fieldset-wrapper">
+    <div class="admin__page-section-title">
+        <span class="title"><?= $escaper->escapeHtml($block->getTabTitle()) ?></span>
+    </div>
+
+    <div class="admin__page-section-content order-view-account-information">
+        <div class="admin__page-section-item order-information">
+            <div class="admin__page-section-item-content">
+                <table class="admin__table-secondary">
+                    <tbody>
+                    <tr>
+                        <th><?= $escaper->escapeHtml(__('Status')->render()) ?></th>
+                        <?php
+                            $status = $syncOrderRecord
+                                ? $syncOrderRecord->getStatus()
+                                : Statuses::NOT_REGISTERED->value;
+                        ?>
+                        <td><?= $escaper->escapeHtml((string)$syncOrderViewModel->getStatusForDisplay($status)) ?></td>
+                    </tr>
+                    <tr>
+                        <th><?= $escaper->escapeHtml(__('Attempts')->render()) ?></th>
+                        <td><?= $syncOrderRecord?->getAttempts() ?? '0' ?></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="admin__page-section-item order-account-information">
+            <div class="admin__page-section-item-content edit-order-comments">
+                <ul class="note-list">
+                    <?php foreach ($syncOrderHistoryRecords as $syncOrderHistoryRecord): ?>
+                        <li class="note-list-item">
+                            <span class="note-list-date">
+                                <?= $escaper->escapeHtml($syncOrderHistoryRecord->getTimestamp()) ?>
+                            </span>
+                            <span class="note-list-customer">
+                                <?php
+                                    $action = $syncOrderHistoryViewModel->getActionForDisplay(
+                                        $syncOrderHistoryRecord->getAction(),
+                                    );
+                                ?>
+                                <?= $escaper->escapeHtml(
+                                    __('%1 via %2', $action, $syncOrderHistoryRecord->getVia())->render(),
+                                ) ?>
+                            </span>
+                            <span class="note-list-status">
+                                <?php
+                                    $result = $syncOrderHistoryViewModel->getResultForDisplay(
+                                        $syncOrderHistoryRecord->getResult(),
+                                    );
+                                ?>
+                                <?= $escaper->escapeHtml($result->render()) ?>
+                            </span>
+                            <?php
+                                $additionalInfo = $syncOrderHistoryViewModel->getAdditionalInformationForDisplay(
+                                    $syncOrderHistoryRecord->getAdditionalInformation(),
+                                );
+                            ?>
+                            <?php if ($additionalInfo): ?>
+                                <div class="note-list-comment">
+                                    <pre><?= /** @noEscape */ $additionalInfo ?></pre>
+                                </div>
+                            <?php endif; ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

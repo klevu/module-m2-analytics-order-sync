@@ -1,0 +1,174 @@
+"Klevu Order Sync History","Klevu Order Sync History"
+"Adds Magento order record(s) to queue for synchronisation","Adds Magento order record(s) to queue for synchronisation"
+"Order ids to be queued for sync","Order ids to be queued for sync"
+"Sync statuses to (re)queue for sync","Sync statuses to (re)queue for sync"
+"Store IDs to limit queued order options","Store IDs to limit queued order options"
+"Forces queueing of orders in stores which have sync disabled","Forces queueing of orders in stores which have sync disabled"
+"Queueing orders for sync","Queueing orders for sync"
+"No stores enabled for sync","No stores enabled for sync"
+"Enable sync for selected stores or run with the --%1 option","Enable sync for selected stores or run with the --%1 option"
+"No matching orders found to queue","No matching orders found to queue"
+"Queueing order id #%1: ","Queueing order id #%1: "
+"CLI: %1","CLI: %1"
+OK,OK
+ERROR,ERROR
+"Sends queued orders to Klevu analytics","Sends queued orders to Klevu analytics"
+"Order ids to be processed","Order ids to be processed"
+"Store(s) to sync orders for","Store(s) to sync orders for"
+"Forces processing of orders in stores which have sync disabled","Forces processing of orders in stores which have sync disabled"
+"Processing RETRY orders","Processing RETRY orders"
+"Processing queued orders","Processing queued orders"
+"Batch %1 / %2","Batch %1 / %2"
+"Cron: %1","Cron: %1"
+Disabled,Disabled
+"Every minute","Every minute"
+"Every 5 minutes","Every 5 minutes"
+"Every 30 minutes","Every 30 minutes"
+Hourly,Hourly
+"Every 6 hours","Every 6 hours"
+"Every 12 hours","Every 12 hours"
+"Once a day","Once a day"
+Custom,Custom
+"Remote IP","Remote IP"
+"X Forwarded For","X Forwarded For"
+"Not Registered","Not Registered"
+Queued,Queued
+Processing,Processing
+Synced,Synced
+"Queued (Retry)","Queued (Retry)"
+"Partial (Queued)","Partial (Queued)"
+Error,Error
+"Migrated from previous Klevu version","Migrated from previous Klevu version"
+"Processing Started","Processing Started"
+"Processing Finished","Processing Finished"
+"No Action","No Action"
+Success,Success
+"Could not save sync order history record: %1","Could not save sync order history record: %1"
+"Could not delete sync order history record: %1","Could not delete sync order history record: %1"
+"Could not save sync order record: %1","Could not save sync order record: %1"
+"Could not delete sync order record: %1","Could not delete sync order record: %1"
+"Payload must be numeric (integer only); Received %1","Payload must be numeric (integer only); Received %1"
+"No order exists for payload ""%1""","No order exists for payload ""%1"""
+"Invalid orderId %1","Invalid orderId %1"
+"Cannot process failed order sync for unsaved order #%1","Cannot process failed order sync for unsaved order #%1"
+"Order requeued after failed sync attempt within configured threshold","Order requeued after failed sync attempt within configured threshold"
+"Current Page must be greater than 0","Current Page must be greater than 0"
+"Page Size must be greater than 0","Page Size must be greater than 0"
+"Cannot create an order sync record for #%1 until the order is saved","Cannot create an order sync record for #%1 until the order is saved"
+"Cannot create an order sync record for order id #%1: Order not found","Cannot create an order sync record for order id #%1: Order not found"
+"Order found processing after %1 minute threshold","Order found processing after %1 minute threshold"
+"Test Exception Message","Test Exception Message"
+bar,bar
+foo,foo
+"Sync Status ""%1"" cannot initiate sync","Sync Status ""%1"" cannot initiate sync"
+"Order status ""%1"" is excluded by configuration in store %2","Order status ""%1"" is excluded by configuration in store %2"
+"Server-side order data processing is disabled. Conversion rate metrics will not be available in KMC.","Server-side order data processing is disabled. Conversion rate metrics will not be available in KMC."
+"Server-side order data processing is enabled, but sending via Magento's cron is disabled. Please ensure you have implemented an alternative means of transmitting order data to Klevu, otherwise conversion rate metrics will not be available in KMC.","Server-side order data processing is enabled, but sending via Magento's cron is disabled. Please ensure you have implemented an alternative means of transmitting order data to Klevu, otherwise conversion rate metrics will not be available in KMC."
+"Server-side order data processing is enabled and configured to send data to Klevu %1.","Server-side order data processing is enabled and configured to send data to Klevu %1."
+"Orders in the following statuses at time of sync will not be included: %1.","Orders in the following statuses at time of sync will not be included: %1."
+"Orders in any status will be included.","Orders in any status will be included."
+Configuration,Configuration
+"You can find settings to update sync configuration, including status and automated schedule, under %1Klevu%2 &gt; %1Data Sync%2 &gt; %1Order Analytics%2.","You can find settings to update sync configuration, including status and automated schedule, under %1Klevu%2 &gt; %1Data Sync%2 &gt; %1Order Analytics%2."
+"Advanced configuration options can be found under %1Klevu%2 &gt; %1Developer Settings%2 &gt; %1Order Analytics%2.","Advanced configuration options can be found under %1Klevu%2 &gt; %1Developer Settings%2 &gt; %1Order Analytics%2."
+"Useful Links","Useful Links"
+"Our %1Knowledgebase%2 contains in-depth guides and articles on integrating Klevu with Magento. Some pertinent ones can be found below:","Our %1Knowledgebase%2 contains in-depth guides and articles on integrating Klevu with Magento. Some pertinent ones can be found below:"
+"Configuring sync schedules, including via external cron","Configuring sync schedules, including via external cron"
+"Viewing the sync status and history of individual orders","Viewing the sync status and history of individual orders"
+"Debugging and troubleshooting common issues","Debugging and troubleshooting common issues"
+"You can also refer to our %1developer documentation%2 if you need to customise the order synchronisation behaviour.","You can also refer to our %1developer documentation%2 if you need to customise the order synchronisation behaviour."
+Status,Status
+Attempts,Attempts
+"%1 via %2","%1 via %2"
+"Order Analytics","Order Analytics"
+"Order Sync Status","Order Sync Status"
+"Enable order sync to send orders to Klevu via API.","Enable order sync to send orders to Klevu via API."
+"When order sync is disabled, new orders will not be sent to Klevu during
+                scheduled sync operations, including any records which may already be queued.<br />
+                Additionally, when disabled new orders will not be recorded and must be manually
+                queued if they are to be sent in the future.","When order sync is disabled, new orders will not be sent to Klevu during
+                scheduled sync operations, including any records which may already be queued.<br />
+                Additionally, when disabled new orders will not be recorded and must be manually
+                queued if they are to be sent in the future."
+"Order Sync Frequency","Order Sync Frequency"
+"Configure how often to send order information to Klevu.","Configure how often to send order information to Klevu."
+"Learn more about the available options for synchronising data here:
+                <a href=""https://help.klevu.com/support/solutions/articles/5000871440-overview"" target=""_blank"">Magento 2 Data Sync</a>.","Learn more about the available options for synchronising data here:
+                <a href=""https://help.klevu.com/support/solutions/articles/5000871440-overview"" target=""_blank"">Magento 2 Data Sync</a>."
+"Custom Order Sync Schedule","Custom Order Sync Schedule"
+"Exclude Statuses From Sync","Exclude Statuses From Sync"
+"Orders in above statuses when a sync runs will not be sent to Klevu during that process.","Orders in above statuses when a sync runs will not be sent to Klevu during that process."
+"You can optionally exclude orders in specific statuses from being sent to Klevu.
+                Orders will still sync once they are transitioned to a permitted status, however orders
+                which move from a permitted to excluded status cannot be ""unsent"".","You can optionally exclude orders in specific statuses from being sent to Klevu.
+                Orders will still sync once they are transitioned to a permitted status, however orders
+                which move from a permitted to excluded status cannot be ""unsent""."
+"IP Address Field for Order Data","IP Address Field for Order Data"
+"Order field to use as value for IP address during sync.","Order field to use as value for IP address during sync."
+"By default, Klevu considers the <code>remote_ip</code> field of table
+                <code>sales_order</code> for tracking the shopper's IP in the checkout data.
+                If the website is using the <code>x_forwarded_for</code> field from <code>sales_order</code>,
+                please select the <strong>X Forwarded For</strong> option.","By default, Klevu considers the <code>remote_ip</code> field of table
+                <code>sales_order</code> for tracking the shopper's IP in the checkout data.
+                If the website is using the <code>x_forwarded_for</code> field from <code>sales_order</code>,
+                please select the <strong>X Forwarded For</strong> option."
+"Order Sync Max Batch Size","Order Sync Max Batch Size"
+"Maximum number of orders to send during each sync process","Maximum number of orders to send during each sync process"
+"By default (with no value entered in the above field), the synchronisation
+                process will attempt to push all unsent order records.<br />
+                Setting a maximum batch size limits each cron execution to sending at most the configured
+                number of orders. Additional orders will be sent in a subsequent job (including Cron and CLI),
+                resuming from the earliest unsynced order.<br />
+                If you are encountering issues with memory or execution time limits, a lower batch size
+                combined with more frequent synchronisations may mitigate the issue. However, there is a
+                danger of orders backing up if the combination of frequency and batch size are not sufficient
+                to process average daily order volumes.","By default (with no value entered in the above field), the synchronisation
+                process will attempt to push all unsent order records.<br />
+                Setting a maximum batch size limits each cron execution to sending at most the configured
+                number of orders. Additional orders will be sent in a subsequent job (including Cron and CLI),
+                resuming from the earliest unsynced order.<br />
+                If you are encountering issues with memory or execution time limits, a lower batch size
+                combined with more frequent synchronisations may mitigate the issue. However, there is a
+                danger of orders backing up if the combination of frequency and batch size are not sufficient
+                to process average daily order volumes."
+"Order Record Max Sync Attempts","Order Record Max Sync Attempts"
+"Maximum number of times an order record will be tried before being considered failed.","Maximum number of times an order record will be tried before being considered failed."
+"If synchronisation for an order record fails (including connection issues,
+                validate failures, or application errors), it will be requeued for sync in a subsequent
+                batch.<br />
+                After the configured maximum attempts have failed, the order will be marked as failed
+                and no subsequent attempts will be made unless the record is manually requeued.","If synchronisation for an order record fails (including connection issues,
+                validate failures, or application errors), it will be requeued for sync in a subsequent
+                batch.<br />
+                After the configured maximum attempts have failed, the order will be marked as failed
+                and no subsequent attempts will be made unless the record is manually requeued."
+"Consider Processing Orders Stuck After (minutes)","Consider Processing Orders Stuck After (minutes)"
+"Stuck orders are requeued or marked as failed automatically.","Stuck orders are requeued or marked as failed automatically."
+"Occasionally, an order sync process may fail and exit before a record can be
+                marked as processed (or failed). In order for these records to be picked up for processing
+                in subsequent jobs, a cron job will assume them as stuck and requeue after the configured
+                number of minutes since the last action recorded.","Occasionally, an order sync process may fail and exit before a record can be
+                marked as processed (or failed). In order for these records to be picked up for processing
+                in subsequent jobs, a cron job will assume them as stuck and requeue after the configured
+                number of minutes since the last action recorded."
+"Remove History for Successfully Synced Orders After (days)","Remove History for Successfully Synced Orders After (days)"
+"If you have a high volume of orders and are experiencing resource
+                or performance issues as the <code>klevu_sync_order_history</code> table fills up,
+                you can specify a maximum number of days for which to retain history.<br />
+                History items older than this interval will be pruned via cron once a day.<br />
+                This setting applies to successfully synced orders.","If you have a high volume of orders and are experiencing resource
+                or performance issues as the <code>klevu_sync_order_history</code> table fills up,
+                you can specify a maximum number of days for which to retain history.<br />
+                History items older than this interval will be pruned via cron once a day.<br />
+                This setting applies to successfully synced orders."
+"Remove History for Failed Synced Orders After (days)","Remove History for Failed Synced Orders After (days)"
+"If you have a high volume of orders and are experiencing resource
+                or performance issues as the <code>klevu_sync_order_history</code> table fills up,
+                you can specify a maximum number of days for which to retain history.<br />
+                History items older than this interval will be pruned via cron once a day.<br />
+                This setting applies to orders which failed to sync after the configured maximum attempts.","If you have a high volume of orders and are experiencing resource
+                or performance issues as the <code>klevu_sync_order_history</code> table fills up,
+                you can specify a maximum number of days for which to retain history.<br />
+                History items older than this interval will be pruned via cron once a day.<br />
+                This setting applies to orders which failed to sync after the configured maximum attempts."
+Continue,Continue
+"Klevu Sync Status","Klevu Sync Status"

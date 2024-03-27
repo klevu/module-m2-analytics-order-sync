@@ -6,7 +6,21 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
     <module name="Klevu_AnalyticsOrderSync">
         <sequence>
+            <module name="Magento_Framework"/>
+            <module name="Magento_Backend"/>
+            <module name="Magento_Catalog"/>
+            <module name="Magento_Config"/>
+            <module name="Magento_ConfigurableProduct"/>
+            <module name="Magento_GroupedProduct"/>
+            <module name="Magento_Sales"/>
+            <module name="Magento_Store"/>
+            <module name="Magento_Ui"/>
             <module name="Klevu_Analytics"/>
+            <module name="Klevu_AnalyticsOrderSyncApi"/>
+            <module name="Klevu_Configuration"/>
+            <module name="Klevu_Logger"/>
+            <module name="Klevu_PlatformPipelines"/>
+            <module name="Klevu_Registry"/>
         </sequence>
     </module>
 </config>

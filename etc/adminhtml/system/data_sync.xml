@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="analytics_order_sync" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Order Analytics</label>
+
+        <field id="enabled"
+               translate="label comment tooltip"
+               sortOrder="10"
+               type="select"
+               showInDefault="1"
+               showInWebsite="1"
+               showInStore="1"
+               canRestore="1">
+            <label>Order Sync Status</label>
+            <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+            <comment><![CDATA[Enable order sync to send orders to Klevu via API.]]></comment>
+            <tooltip><![CDATA[When order sync is disabled, new orders will not be sent to Klevu during
+                scheduled sync operations, including any records which may already be queued.<br />
+                Additionally, when disabled new orders will not be recorded and must be manually
+                queued if they are to be sent in the future.]]></tooltip>
+            <config_path>klevu/analytics_order_sync/enabled</config_path>
+        </field>
+        <field id="cron_frequency"
+               translate="label comment tooltip"
+               sortOrder="20"
+               type="select"
+               showInDefault="1"
+               showInWebsite="0"
+               showInStore="0"
+               canRestore="1">
+            <label>Order Sync Frequency</label>
+            <source_model>Klevu\AnalyticsOrderSync\Model\Source\Options\CronFrequency</source_model>
+            <comment><![CDATA[Configure how often to send order information to Klevu.]]></comment>
+            <tooltip><![CDATA[Learn more about the available options for synchronising data here:
+                <a href="https://help.klevu.com/support/solutions/articles/5000871440-overview" target="_blank">Magento 2 Data Sync</a>.]]></tooltip>
+            <config_path>klevu/analytics_order_sync/cron_frequency</config_path>
+        </field>
+        <field id="cron_expr"
+               translate="label comment tooltip"
+               sortOrder="30"
+               type="text"
+               showInDefault="1"
+               showInWebsite="0"
+               showInStore="0"
+               canRestore="1">
+            <label>Custom Order Sync Schedule</label>
+            <validate>required-entry</validate>
+            <source_model>Klevu\AnalyticsOrderSync\Model\Source\Options\OrderIpAttribute</source_model>
+            <config_path>klevu/analytics_order_sync/cron_expr</config_path>
+            <depends>
+                <field id="cron_frequency"/>
+            </depends>
+        </field>
+        <field id="exclude_status_from_sync"
+               translate="label comment tooltip"
+               sortOrder="40"
+               type="multiselect"
+               showInDefault="1"
+               showInWebsite="1"
+               showInStore="1"
+               canRestore="1">
+            <label>Exclude Statuses From Sync</label>
+            <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+            <can_be_empty>1</can_be_empty>
+            <comment><![CDATA[Orders in above statuses when a sync runs will not be sent to Klevu during that process.]]></comment>
+            <tooltip><![CDATA[You can optionally exclude orders in specific statuses from being sent to Klevu.
+                Orders will still sync once they are transitioned to a permitted status, however orders
+                which move from a permitted to excluded status cannot be "unsent".]]></tooltip>
+            <config_path>klevu/analytics_order_sync/exclude_status_from_sync</config_path>
+        </field>
+    </group>
+</config>

@@ -1,0 +1,96 @@
+<?php
+
+/**
+ * Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details.
+ */
+
+declare(strict_types=1);
+
+use Klevu\Analytics\ViewModel\Escaper as EscaperViewModel;
+use Klevu\Configuration\Block\Adminhtml\Backend\Template;
+
+/**
+ * @var Template $block
+ * @var EscaperViewModel $escaperViewModel
+ */
+$escaperViewModel = $block->getData('escaper_view_model');
+$escaper = $escaperViewModel->getEscaper();
+?>
+<section class="admin__page-section">
+    <div class="admin__page-section-title"></div>
+
+    <div class="admin__page-section-content" style="display: flex; gap: 20px; margin-left: -10px; margin-right: -10px;">
+        <section style="flex-basis: 50%;">
+            <h2><?= $escaper->escapeHtml(__('Configuration')->render()) ?></h2>
+            <p>
+                <?= $escaper->escapeHtml(
+                    data: __(
+                        'You can find settings to update sync configuration, including status and automated '
+                        . 'schedule, under %1Klevu%2 &gt; %1Data Sync%2 &gt; %1Order Analytics%2.',
+                        '<strong>',
+                        '</strong>',
+                    )->render(),
+                    allowedTags: ['strong'],
+                ) ?>
+            </p>
+
+            <p>
+                <?= $escaper->escapeHtml(
+                    data: __(
+                        'Advanced configuration options can be found under '
+                        . '%1Klevu%2 &gt; %1Developer Settings%2 &gt; %1Order Analytics%2.',
+                        '<strong>',
+                        '</strong>',
+                    )->render(),
+                    allowedTags: ['strong'],
+                ) ?>
+            </p>
+        </section>
+
+        <section style="flex-basis: 50%;">
+            <h2><?= $escaper->escapeHtml(__('Useful Links')->render()) ?></h2>
+            <p>
+                <?= $escaper->escapeHtml(
+                    data: __(
+                        'Our %1Knowledgebase%2 contains in-depth guides and articles on integrating Klevu with '
+                        . 'Magento. Some pertinent ones can be found below:',
+                        '<a href="https://help.klevu.com/support/solutions/5000174077" target="_blank">',
+                        '</a>',
+                    )->render(),
+                    allowedTags: ['a'],
+                ) ?>
+            </p>
+            <ul style="margin-left: 20px;">
+                <li>
+                    <a href=""
+                       target="_blank"><?= $escaper->escapeHtml(
+                           __('Configuring sync schedules, including via external cron')->render(),
+                        ) ?></a>
+                </li>
+                <li>
+                    <a href=""
+                       target="_blank"><?= $escaper->escapeHtml(
+                           __('Viewing the sync status and history of individual orders')->render(),
+                        ) ?></a>
+                </li>
+                <li>
+                    <a href=""
+                       target="_blank"><?= $escaper->escapeHtml(
+                           __('Debugging and troubleshooting common issues')->render(),
+                        ) ?></a>
+                </li>
+            </ul>
+            <p>
+                <?= $escaper->escapeHtml(
+                    data: __(
+                        'You can also refer to our %1developer documentation%2 if you need to customise the '
+                        . 'order synchronisation behaviour.',
+                        '<a href="" target="_blank">',
+                        '</a>',
+                    )->render(),
+                    allowedTags: ['a'],
+                ) ?>
+            </p>
+        </section>
+    </div>
+</section>

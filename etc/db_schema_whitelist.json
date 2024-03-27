@@ -1,0 +1,35 @@
+{
+    "klevu_sync_order": {
+        "column": {
+            "entity_id": true,
+            "order_id": true,
+            "store_id": true,
+            "status": true,
+            "attempts": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "UNQ_KLEVU_SYNC_ORDER_ORDER_ID": true,
+            "FK_KLEVU_SYNC_ORDER_ORDER_ID_SALES_ORDER_ENTITY_ID": true,
+            "FK_KLEVU_SYNC_ORDER_STORE_ID_STORE_STORE_ID": true
+        },
+        "index": {
+            "IND_KLEVU_SYNC_ORDER_STATUS": true
+        }
+    },
+    "klevu_sync_order_history": {
+        "column": {
+            "entity_id": true,
+            "sync_order_id": true,
+            "timestamp": true,
+            "action": true,
+            "via": true,
+            "result": true,
+            "additional_information": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "FK_KLEVU_SYNC_ORDER_HISTORY_SYNC_ORDER_ID_KLEVU_SYNC_ORDER_ENTITY_ID": true
+        }
+    }
+}

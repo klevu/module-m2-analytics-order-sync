@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <virtualType name="Klevu\AnalyticsOrderSync\Block\Adminhtml\Config\Integration\StatusMessages"
+                 type="Klevu\Configuration\Block\Adminhtml\Config\Messages">
+        <arguments>
+            <argument name="messageViewModel"
+                      xsi:type="object">Klevu\AnalyticsOrderSync\ViewModel\Config\Integration\StatusMessages</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Klevu\AnalyticsOrderSync\Block\Adminhtml\Config\Integration\Info"
+                 type="Klevu\Configuration\Block\Adminhtml\Backend\Template">
+        <arguments>
+            <argument name="data" xsi:type="array">
+                <item name="name" xsi:type="string">klevu_analytics_integration_ordersync_info_block</item>
+                <item name="template" xsi:type="string">Klevu_AnalyticsOrderSync::config/integration/info.phtml</item>
+                <item name="escaper_view_model" xsi:type="object">Klevu\Analytics\ViewModel\Escaper</item>
+            </argument>
+        </arguments>
+    </virtualType>
+</config>

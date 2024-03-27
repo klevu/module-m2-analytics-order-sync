@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <columns name="sales_order_columns">
+        <column name="klevu_order_sync_status"
+                class="Klevu\AnalyticsOrderSync\Ui\Component\Listing\Column\SyncStatus">
+            <settings>
+                <label translate="true">Klevu Sync Status</label>
+                <filter>select</filter>
+                <options class="Klevu\AnalyticsOrderSync\Model\Source\Options\SyncOrder\Status"/>
+                <dataType>select</dataType>
+                <bodyTmpl>ui/grid/cells/html</bodyTmpl>
+            </settings>
+        </column>
+    </columns>
+</listing>

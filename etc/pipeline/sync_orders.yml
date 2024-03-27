@@ -1,0 +1,390 @@
+stages:
+  # Add stages before the start of the full sync process here
+  processStart:
+    stages: ~
+  processOrders:
+    stages:
+      iterateOrders:
+        pipeline: Pipeline\Iterate
+        stages:
+          processOrderStart:
+            stages:
+              # Use extraction accessor currentOrder:: to retrieve order information during processing
+              registerOrderToContext:
+                pipeline: Stage\RegisterContext
+                args:
+                  contextKey: currentOrder
+              # Tell the logger and context provider which store this order is for
+              setStoreScope:
+                stages:
+                  -
+                    pipeline: Stage\Extract
+                    args:
+                      extraction: currentOrder::getStoreId()
+                      transformations: ToInteger
+                  -
+                    pipeline: Analytics\Stage\SetStoreScope
+              filterOrder:
+                stages: ~
+              # Lock the order to prevent other processes syncing concurrently
+              markAsProcessing:
+                stages:
+                  -
+                    pipeline: Stage\Extract
+                    args:
+                      extraction: currentOrder::getEntityId()
+                      transformations: ToInteger
+                  -
+                    pipeline: OrderAnalytics\Stage\MarkOrderAsProcessing
+              resetPayload:
+                pipeline: Stage\Extract
+                args:
+                  extraction: currentOrder::
+              # Perform any transformations to prepare the order
+              # These should be avoided where possible, in favour of schema-declared stages
+              preprocessOrder:
+                stages:
+                  # Add any custom preprocessing logic for entire order as stages here
+                  injectConsolidatedGroupedOrderItems:
+                    pipeline: Stage\Transform
+                    args:
+                      transformation: OrderAnalytics\InjectConsolidatedGroupedProductOrderItems
+              # Re-register the order object to context, ensuring processing stages are reflected
+              registerProcessedOrderToContext:
+                pipeline: Stage\RegisterContext
+                args:
+                  contextKey: currentOrder
+          processOrder:
+            pipeline: Pipeline\Fallback
+            stages:
+              execute:
+                stages:
+                  # This is where we turn the order into an Event that the API can understand
+                  extractEventData:
+                    stages:
+                      # Create userProfile for event
+                      createUserProfile:
+                        stages:
+                          createRecord:
+                            pipeline: Pipeline\CreateRecord
+                            stages:
+                              ip_address:
+                                pipeline: Stage\Extract
+                                args:
+                                  # Our context provider passes the getter for IP Address based on Stores > Config settings
+                                  # This may be getRemoteIp() or getXForwardedFor()
+                                  # By using an extraction as our accessor (denoted with the leading $), we tell
+                                  # the pipeline to evaluate the ip_address extraction in runtime
+                                  extraction: $config::getForCurrentStore().ip_address_accessor
+                              email:
+                                pipeline: Pipeline\Fallback
+                                stages:
+                                  -
+                                    stages:
+                                      extract:
+                                        pipeline: Stage\Extract
+                                        args:
+                                          extraction: getCustomerEmail()
+                                      validate:
+                                        pipeline: Stage\Validate
+                                        args:
+                                          validation: IsNotEmpty
+                                      transform:
+                                        pipeline: Stage\Transform
+                                        args:
+                                          # Note: for merchants migrating from Klevu v2.x, a backward-compatible
+                                          #  transformation instruction would be:
+                                          #  Hash("md5")|Prepend("enc-")
+                                          transformation: Hash("sha256")|Prepend("cep-")
+                          registerContext:
+                            pipeline: Stage\RegisterContext
+                            args:
+                              contextKey: userProfile
+                          resetPayload:
+                            pipeline: Stage\Extract
+                            args:
+                              extraction: currentOrder::
+                      # Pull the order items from the order to process individually
+                      extractOrderItems:
+                        pipeline: Stage\Extract
+                        args:
+                          extraction: getItems()
+                          # We don't sync configurable products - children are synced individually
+                          # We don't sync grouped products - a preprocessor is used to combine all children to a single
+                          #   line item with type "consolidated-grouped" (ref: ConsolidatedGroupedProductOrderItemProvider)
+                          transformations:
+                            - FilterCompare([$getProductType(), "nin", ["configurable", "grouped"]])
+                            - FilterCompare([$getParentItem().getProductType(), "nin", ["bundle"]])
+                      ensureOrderItemsCount:
+                        pipeline: Stage\Validate
+                        args:
+                          validation: IsNotEmpty
+                      # Create a containing array with the key items (required format for Event)
+                      createItemsArray:
+                        pipeline: Pipeline\CreateRecord
+                        stages:
+                          items: # This is the key, ie {"items": ... (result of following pipeline)}
+                            # At this stage, our payload is the array of items from extractOrderItems.
+                            # Loop through them with Iterate
+                            pipeline: Pipeline\Iterate
+                            stages:
+                              # Use extraction accessor currentOrderItem:: to retrieve order item information during processing
+                              registerOrderItemToContext:
+                                pipeline: Stage\RegisterContext
+                                args:
+                                  contextKey: currentOrderItem
+                              # Here we set the "items" value to an array of values, ie {"items": {}}
+                              createItemRecord:
+                                pipeline: Pipeline\CreateRecord
+                                stages:
+                                  # Each of these named stages corresponds to a key in the "items" object
+                                  order_id: # eg {"items": {"order_id" ...}}
+                                    pipeline: Stage\Extract
+                                    args:
+                                      extraction: currentOrder::getEntityId()
+                                      transformations: ToString|Trim
+                                  order_line_id:
+                                    stages:
+                                      getData:
+                                        pipeline: Stage\Extract
+                                        args:
+                                          extraction: currentOrderItem::getId()
+                                          transformations: ToString|Trim
+                                  item_name:
+                                    stages:
+                                      getDataFallback:
+                                        # Fallback pipelines will loop through stages until one completes
+                                        # without throwing an exception (eg a failed validation)
+                                        pipeline: Pipeline\Fallback
+                                        stages:
+                                          withParent:
+                                            stages:
+                                              fallbackCondition:
+                                                stages:
+                                                  -
+                                                    pipeline: Stage\Extract
+                                                    args:
+                                                      extraction: currentOrderItem::getParentItem()
+                                                  -
+                                                    pipeline: Stage\Validate
+                                                    args:
+                                                      validation: IsNotEmpty
+                                              getData:
+                                                # We only reach this stage if the IsNotEmpty check passes,
+                                                # so we know this is a configurable variant
+                                                pipeline: Stage\Extract
+                                                args:
+                                                  extraction: currentOrderItem::getParentItem().getName()
+                                                  transformations: Trim|StripTags
+                                          withoutParent:
+                                            stages:
+                                              getData:
+                                                pipeline: Stage\Extract
+                                                args:
+                                                  extraction: currentOrderItem::getName()
+                                                  transformations: Trim|StripTags
+                                  item_id:
+                                    stages:
+                                      getDataFallback:
+                                        # Fallback pipelines will loop through stages until one completes
+                                        # without throwing an exception (eg a failed validation)
+                                        pipeline: Pipeline\Fallback
+                                        stages:
+                                          withParent:
+                                            stages:
+                                              fallbackCondition:
+                                                stages:
+                                                  -
+                                                    pipeline: Stage\Extract
+                                                    args:
+                                                      extraction: currentOrderItem::getParentItem()
+                                                  -
+                                                    pipeline: Stage\Validate
+                                                    args:
+                                                      validation: IsNotEmpty
+                                              getData:
+                                                # We only reach this stage if the IsNotEmpty check passes,
+                                                # so we know this is a configurable variant
+                                                pipeline: Stage\Extract
+                                                args:
+                                                  # Pipeline payload is currently $currentOrderItem::getParentItem() (ie, the parent configurable product)
+                                                  # So get its id...
+                                                  extraction: currentOrderItem::getParentItem().getProductId()
+                                                  # ...and append the child product's id, separated with "-"
+                                                  transformations: ToString|Append("-", $currentOrderItem::getProductId())
+                                          withoutParent:
+                                            stages:
+                                              getData:
+                                                # If withParent fails, we fall back to using the order items' productId value
+                                                pipeline: Stage\Extract
+                                                args:
+                                                  extraction: currentOrderItem::getProductId()
+                                                  transformations: ToString
+                                  item_group_id:
+                                    stages:
+                                      getDataFallback:
+                                        # See notes for item_id regarding Fallback processing
+                                        pipeline: Pipeline\Fallback
+                                        stages:
+                                          withParent:
+                                            stages:
+                                              fallbackCondition:
+                                                stages:
+                                                  -
+                                                    pipeline: Stage\Extract
+                                                    args:
+                                                      extraction: currentOrderItem::getParentItem()
+                                                  -
+                                                    pipeline: Stage\Validate
+                                                    args:
+                                                      validation: IsNotEmpty
+                                              getData:
+                                                pipeline: Stage\Extract
+                                                args:
+                                                  extraction: currentOrderItem::getParentItem().getProductId()
+                                                  transformations: ToString
+                                          withoutParent:
+                                            stages:
+                                              getData:
+                                                pipeline: Stage\Extract
+                                                args:
+                                                  extraction: currentOrderItem::getProductId()
+                                                  transformations: ToString
+                                  item_variant_id:
+                                    stages:
+                                      getData:
+                                        pipeline: Stage\Extract
+                                        args:
+                                          extraction: currentOrderItem::getProductId()
+                                          transformations: ToString
+                                  unit_price:
+                                    stages:
+                                      getDataFallback:
+                                        # See notes for item_id regarding Fallback processing
+                                        pipeline: Pipeline\Fallback
+                                        stages:
+                                          withParent:
+                                            stages:
+                                              fallbackCondition:
+                                                stages:
+                                                  -
+                                                    pipeline: Stage\Extract
+                                                    args:
+                                                      extraction: currentOrderItem::getParentItem()
+                                                  -
+                                                    pipeline: Stage\Validate
+                                                    args:
+                                                      validation: IsNotEmpty
+                                              getData:
+                                                pipeline: Stage\Extract
+                                                args:
+                                                  extraction: currentOrderItem::getParentItem().getBasePriceInclTax()
+                                                  transformations: ToString
+                                          withoutParent:
+                                            stages:
+                                              getData:
+                                                pipeline: Stage\Extract
+                                                args:
+                                                  extraction: currentOrderItem::getBasePriceInclTax()
+                                      format:
+                                        pipeline: Stage\Transform
+                                        args:
+                                          transformation: ToString|ToFloat|FormatNumber(2, ".", "")
+                                  currency:
+                                    stages:
+                                      getData:
+                                        pipeline: Stage\Extract
+                                        args:
+                                          extraction: currentOrder::getBaseCurrencyCode()
+                                  units:
+                                    stages:
+                                      getData:
+                                        pipeline: Stage\Extract
+                                        args:
+                                          extraction: currentOrderItem::getQtyOrdered()
+                                          transformations: ToInteger
+                      logItemsArray:
+                        pipeline: Analytics\Stage\Log
+                        args:
+                          message: "Converted Order Items"
+                          logLevel: debug
+                  convertToEvents:
+                    stages:
+                      # These are not named stages and could be combined into a single Transform stage
+                      # They are separated for readability
+                      -
+                        pipeline: Stage\Transform
+                        args:
+                          # Here we create an event containing the {"items":{}} payload, along with other required data for
+                          # \Klevu\PhpSDK\Model\Analytics\Collect\Event
+                          # See also https://docs.klevu.com/apis/smart-search-analytics-events#Ai6mR
+                          transformation: Analytics\Collect\BuildEvent("order_purchase", $auth::getForCurrentStore().js_api_key, "1.0.0", $userProfile::)
+                      -
+                        pipeline: Stage\Transform
+                        args:
+                          # The payload is converted to an EventIterator containing a single Event (the payload from the previous stage)
+                          # See \Klevu\PhpSDK\Model\Analytics\Collect\EventIterator
+                          # Note that we could move this entire stage to come after iterateOrders, which would send all orders
+                          # in a single API request
+                          transformation: Analytics\Collect\ToEventIterator
+                      -
+                        pipeline: Analytics\Stage\Log
+                        args:
+                          message: "Post transform to event iterator"
+                  sendEventsToKlevu:
+                    # This stage contains children to allow injection of custom pipelines either before or after the API call
+                    stages:
+                      send:
+                        pipeline: Stage\SendAnalyticsCollectEvents
+                      registerResult:
+                        pipeline: Stage\RegisterContext
+                        args:
+                          contextKey: processEventResult
+              handleFailure:
+                stages: ~
+          processOrderEnd:
+            stages:
+              markAsProcessed:
+                stages:
+                  -
+                    pipeline: Stage\Extract
+                    args:
+                      extraction: currentOrder::getEntityId()
+                      transformations: ToInteger
+                  -
+                    pipeline: OrderAnalytics\Stage\MarkOrderAsProcessed
+                    args:
+                      result: $processEventResult::success|ToBoolean
+              buildReturnObject:
+                pipeline: Pipeline\CreateRecord
+                stages:
+                  orderId:
+                    pipeline: Stage\Extract
+                    args:
+                      extraction: currentOrder::getEntityId()
+                  incrementId:
+                    pipeline: Stage\Extract
+                    args:
+                      extraction: currentOrder::getIncrementId()
+                  storeId:
+                    pipeline: Stage\Extract
+                    args:
+                      extraction: currentOrder::getStoreId()
+                  result:
+                    stages:
+                      -
+                        pipeline: Stage\Extract
+                        args:
+                          extraction: processEventResult::success
+                          transformations: ToBoolean
+                      -
+                        pipeline: Stage\Transform
+                        args:
+                          transformation: >
+                            ValueMap([
+                              {"sourceValue": true, "convertedValue": "Success"},
+                              {"sourceValue": false, "convertedValue": "Fail"},
+                              {"sourceValue": null, "convertedValue": "No Action"},
+                            ])
+  processEnd:
+    stages: ~

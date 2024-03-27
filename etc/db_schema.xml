@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details.
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="klevu_sync_order" resource="default" engine="innodb" comment="Klevu Order Sync">
+        <column xsi:type="int"
+                name="entity_id"
+                nullable="false"
+                identity="true"
+                comment="Order Sync Record Primary Key"/>
+        <column xsi:type="int"
+                name="order_id"
+                unsigned="true"
+                nullable="false"
+                identity="false"
+                comment="Order Entity ID"/>
+        <column xsi:type="smallint"
+                name="store_id"
+                unsigned="true"
+                nullable="false"
+                identity="false"
+                comment="Store ID" />
+        <column xsi:type="varchar"
+                name="status"
+                length="20"
+                nullable="false"
+                default="1"
+                comment="Current sync status"/>
+        <column xsi:type="smallint"
+                name="attempts"
+                unsigned="true"
+                nullable="false"
+                identity="false"
+                default="0"
+                comment="Number of attempts made to sync this order"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="UNQ_KLEVU_SYNC_ORDER_ORDER_ID">
+            <column name="order_id"/>
+        </constraint>
+        <constraint xsi:type="foreign"
+                    referenceId="FK_KLEVU_SYNC_ORDER_ORDER_ID_SALES_ORDER_ENTITY_ID"
+                    table="klevu_sync_order"
+                    column="order_id"
+                    referenceTable="sales_order"
+                    referenceColumn="entity_id"
+                    onDelete="CASCADE"/>
+        <constraint xsi:type="foreign"
+                    referenceId="FK_KLEVU_SYNC_ORDER_STORE_ID_STORE_STORE_ID"
+                    table="klevu_sync_order"
+                    column="store_id"
+                    referenceTable="store"
+                    referenceColumn="store_id"
+                    onDelete="CASCADE"/>
+        <index referenceId="IND_KLEVU_SYNC_ORDER_STATUS"
+               indexType="btree">
+            <column name="status"/>
+        </index>
+    </table>
+
+    <table name="klevu_sync_order_history" resource="default" engine="innodb" comment="Klevu Order Sync History">
+        <column xsi:type="int"
+                name="entity_id"
+                nullable="false"
+                identity="true"
+                comment="Order Sync Record Primary Key"/>
+        <column xsi:type="int"
+                name="sync_order_id"
+                nullable="false"
+                identity="false"
+                comment="Sync Order Entity ID"/>
+        <column xsi:type="timestamp"
+                name="timestamp"
+                nullable="false"
+                default="CURRENT_TIMESTAMP"
+                on_update="true"
+                comment="Timestamp of action" />
+        <column xsi:type="varchar"
+                name="action"
+                length="20"
+                nullable="false"
+                comment="Action Taken" />
+        <column xsi:type="varchar"
+                name="via"
+                length="50"
+                nullable="false"
+                comment="Mechanism through which action was taken" />
+        <column xsi:type="varchar"
+                name="result"
+                nullable="false"
+                default="true"
+                length="10"
+                comment="Action result" />
+        <column xsi:type="text"
+                name="additional_information"
+                nullable="true"
+                comment="Additional information related to action" />
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <constraint xsi:type="foreign"
+                    referenceId="FK_KLEVU_SYNC_ORDER_HISTORY_SYNC_ORDER_ID_KLEVU_SYNC_ORDER_ENTITY_ID"
+                    table="klevu_sync_order_history"
+                    column="sync_order_id"
+                    referenceTable="klevu_sync_order"
+                    referenceColumn="entity_id"
+                    onDelete="CASCADE"/>
+    </table>
+</schema>
