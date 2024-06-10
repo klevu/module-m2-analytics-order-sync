@@ -24,28 +24,6 @@
                 please select the <strong>X Forwarded For</strong> option.]]></tooltip>
             <config_path>klevu/analytics_order_sync/ip_address_attribute</config_path>
         </field>
-        <field id="max_batch_size"
-               translate="label comment tooltip"
-               sortOrder="20"
-               type="text"
-               showInDefault="1"
-               showInWebsite="1"
-               showInStore="1"
-               canRestore="1">
-            <label>Order Sync Max Batch Size</label>
-            <validate>validate-positive-integer</validate>
-            <comment><![CDATA[Maximum number of orders to send during each sync process]]></comment>
-            <tooltip><![CDATA[By default (with no value entered in the above field), the synchronisation
-                process will attempt to push all unsent order records.<br />
-                Setting a maximum batch size limits each cron execution to sending at most the configured
-                number of orders. Additional orders will be sent in a subsequent job (including Cron and CLI),
-                resuming from the earliest unsynced order.<br />
-                If you are encountering issues with memory or execution time limits, a lower batch size
-                combined with more frequent synchronisations may mitigate the issue. However, there is a
-                danger of orders backing up if the combination of frequency and batch size are not sufficient
-                to process average daily order volumes.]]></tooltip>
-            <config_path>klevu/analytics_order_sync/max_batch_size</config_path>
-        </field>
         <field id="sync_order_max_attempts"
                translate="label comment tooltip"
                sortOrder="30"
@@ -55,7 +33,7 @@
                showInStore="1"
                canRestore="1">
             <label>Order Record Max Sync Attempts</label>
-            <validate>validate-positive-integer</validate>
+            <validate>validate-digits validate-digits-range digits-range-1-999999</validate>
             <comment><![CDATA[Maximum number of times an order record will be tried before being considered failed.]]></comment>
             <tooltip><![CDATA[If synchronisation for an order record fails (including connection issues,
                 validate failures, or application errors), it will be requeued for sync in a subsequent
@@ -73,7 +51,7 @@
                showInStore="0"
                canRestore="1">
             <label>Consider Processing Orders Stuck After (minutes)</label>
-            <validate>validate-positive-integer</validate>
+            <validate>validate-digits validate-digits-range digits-range-1-999999</validate>
             <comment>Stuck orders are requeued or marked as failed automatically.</comment>
             <tooltip><![CDATA[Occasionally, an order sync process may fail and exit before a record can be
                 marked as processed (or failed). In order for these records to be picked up for processing
@@ -90,7 +68,7 @@
                showInStore="0"
                canRestore="1">
             <label>Remove History for Successfully Synced Orders After (days)</label>
-            <validate>validate-positive-integer</validate>
+            <validate>validate-digits validate-digits-range digits-range-1-999999</validate>
             <tooltip><![CDATA[If you have a high volume of orders and are experiencing resource
                 or performance issues as the <code>klevu_sync_order_history</code> table fills up,
                 you can specify a maximum number of days for which to retain history.<br />
@@ -107,7 +85,7 @@
                showInStore="0"
                canRestore="1">
             <label>Remove History for Failed Synced Orders After (days)</label>
-            <validate>validate-positive-integer</validate>
+            <validate>validate-digits validate-digits-range digits-range-1-999999</validate>
             <tooltip><![CDATA[If you have a high volume of orders and are experiencing resource
                 or performance issues as the <code>klevu_sync_order_history</code> table fills up,
                 you can specify a maximum number of days for which to retain history.<br />

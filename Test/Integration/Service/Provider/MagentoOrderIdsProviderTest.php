@@ -143,14 +143,20 @@ class MagentoOrderIdsProviderTest extends TestCase
         $magentoOrderIdsProvider = $this->instantiateTestObject();
 
         $searchCriteria = $this->searchCriteriaBuilder->create();
+
+        $expectedResult = [
+            (int)$orders[0]->getEntityId(),
+            (int)$orders[1]->getEntityId(),
+        ];
+        sort($expectedResult);
+        $actualResult = $magentoOrderIdsProvider->getByCriteria(
+            $searchCriteria,
+        );
+        sort($actualResult);
+
         $this->assertEquals(
-            expected: [
-                (int)$orders[0]->getEntityId(),
-                (int)$orders[1]->getEntityId(),
-            ],
-            actual: $magentoOrderIdsProvider->getByCriteria(
-                $searchCriteria,
-            ),
+            expected: $expectedResult,
+            actual: $actualResult,
         );
     }
 

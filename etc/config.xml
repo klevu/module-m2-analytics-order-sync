@@ -9,7 +9,6 @@
                 <cron_expr>*/5 * * * *</cron_expr>
                 <exclude_status_from_sync/>
                 <ip_address_attribute>remote_ip</ip_address_attribute>
-                <max_batch_size/>
                 <sync_order_max_attempts>3</sync_order_max_attempts>
                 <requeue_processing_orders_after_minutes>15</requeue_processing_orders_after_minutes>
                 <remove_synced_order_history_after_days/>

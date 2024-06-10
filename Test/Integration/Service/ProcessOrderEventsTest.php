@@ -37,6 +37,7 @@ use Klevu\Configuration\Service\Provider\ScopeProviderInterface;
 use Klevu\PhpSDK\Service\Analytics\CollectService;
 use Klevu\Pipelines\ObjectManager\Container;
 use Klevu\Pipelines\ObjectManager\ObjectManagerInterface as PipelinesObjectManagerInterface;
+use Klevu\PlatformPipelines\ObjectManager\Container as PlatformPipelinesContainer;
 use Klevu\TestFixtures\Catalog\ConfigurableProductBuilder;
 use Klevu\TestFixtures\Catalog\GroupedProductBuilder;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
@@ -182,6 +183,9 @@ class ProcessOrderEventsTest extends TestCase
 
         $this->mockHttpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
+        Container::setInstance(
+            container: $this->objectManager->get(PlatformPipelinesContainer::class),
+        );
         $pipelinesContainer = Container::getInstance();
         if ($pipelinesContainer instanceof PipelinesObjectManagerInterface) {
             $pipelinesContainer->addSharedInstance(
@@ -357,6 +361,7 @@ class ProcessOrderEventsTest extends TestCase
      *  Int | En. | Ord
      * -----+-----+-----
      *   𐄂  |  ✓  |  ✓
+     * @group wip
      */
     public function testExecute_NotIntegrated_SyncEnabled_OrdersToProcess(): void
     {
@@ -374,8 +379,8 @@ class ProcessOrderEventsTest extends TestCase
             storeCode: 'klevu_analytics_test_store_1',
             status: 'pending',
             orderData: [
-                'remote_ip' => '127.0.0.1',
-                'x_forwarded_for' => '172.0.0.1',
+                'remote_ip' => '127.0.0.1,1.2.3.4',
+                'x_forwarded_for' => '172.0.0.1,1.2.3.4',
             ],
             orderItemsData: [
                 [
@@ -413,6 +418,7 @@ class ProcessOrderEventsTest extends TestCase
      *  Int | En. | Ord
      * -----+-----+-----
      *   𐄂✓ |  ✓  |  ✓
+     * @group wip
      */
     public function testExecute_MixedIntegrated_SyncEnabled_OrdersToProcess(): void
     {
@@ -430,8 +436,8 @@ class ProcessOrderEventsTest extends TestCase
             storeCode: 'klevu_analytics_test_store_1',
             status: 'pending',
             orderData: [
-                'remote_ip' => '127.0.0.1',
-                'x_forwarded_for' => '172.0.0.1',
+                'remote_ip' => '127.0.0.1, 1.2.3.4',
+                'x_forwarded_for' => '172.0.0.1, 1.2.3.4',
             ],
             orderItemsData: [
                 [
@@ -455,8 +461,8 @@ class ProcessOrderEventsTest extends TestCase
             storeCode: 'klevu_analytics_test_store_2',
             status: 'pending',
             orderData: [
-                'remote_ip' => '127.0.0.1',
-                'x_forwarded_for' => '172.0.0.1',
+                'remote_ip' => '127.0.0.1,1.2.3.4',
+                'x_forwarded_for' => '172.0.0.1,4.5.2.3',
             ],
             orderItemsData: [
                 [
@@ -2903,10 +2909,15 @@ class ProcessOrderEventsTest extends TestCase
                 $this->assertArrayHasKey('user_profile', $event);
                 $this->assertIsArray($event['user_profile']);
                 $this->assertArrayHasKey('ip_address', $event['user_profile']);
+
+                $expectedIp = 'x_forwarded_for' === $config[Constants::XML_PATH_ORDER_SYNC_IP_ADDRESS_ATTRIBUTE]
+                    ? $order->getXForwardedFor()
+                    : $order->getRemoteIp();
+                $expectedIp = current(
+                    array_map('trim', explode(',', $expectedIp)),
+                );
                 $this->assertSame(
-                    expected: 'x_forwarded_for' === $config[Constants::XML_PATH_ORDER_SYNC_IP_ADDRESS_ATTRIBUTE]
-                        ? $order->getXForwardedFor()
-                        : $order->getRemoteIp(),
+                    expected: $expectedIp,
                     actual: $event['user_profile']['ip_address'],
                 );
                 $this->assertArrayHasKey('email', $event['user_profile']);

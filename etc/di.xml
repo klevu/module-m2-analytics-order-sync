@@ -131,7 +131,7 @@
     <virtualType name="Klevu\AnalyticsOrderSync\Service\ProcessOrderEvents"
                  type="Klevu\Analytics\Service\ProcessEvents">
         <arguments>
-            <argument name="pipelineBuilder" xsi:type="object">Klevu\Pipelines\Pipeline\PipelineBuilderInterface\Proxy</argument>
+            <argument name="pipelineBuilder" xsi:type="object">Klevu\Analytics\Pipeline\PipelineBuilder</argument>
             <argument name="eventsDataProvider" xsi:type="object">Klevu\AnalyticsOrderSync\Service\Provider\OrderSyncEventsDataProvider</argument>
             <argument name="pipelineContextProviders" xsi:type="array">
                 <item name="config" xsi:type="object">Klevu\AnalyticsOrderSync\Service\Provider\PipelineContext\ConfigProvider</item>
