@@ -28,6 +28,9 @@ class SyncOrdersCommand extends Command
     use FilterSearchCriteriaOptionsTrait;
     use OptionSourceToHashTrait;
 
+    public const SUCCESS = 0; // Magento requires symfony/console 4.4, however this const was not added until 5.1
+    public const FAILURE = 1; // Magento requires symfony/console 4.4, however this const was not added until 5.1
+    public const INVALID = 2; // Magento requires symfony/console 4.4, however this const was not added until 5.1
     public const COMMAND_NAME = 'klevu:analytics:sync-orders';
     public const OPTION_ORDER_ID = 'order-id';
     public const OPTION_STORE_ID = 'store-id';
@@ -120,7 +123,7 @@ class SyncOrdersCommand extends Command
         InputInterface $input,
         OutputInterface $output,
     ): int {
-        $return = Command::SUCCESS;
+        $return = self::SUCCESS;
         $filterStoreIds = $this->getStoreIdsToFilter(
             storeIds: $input->getOption(static::OPTION_STORE_ID),
             ignoreSyncEnabledFlag: $input->getOption(static::OPTION_IGNORE_SYNC_ENABLED_FLAG),
@@ -136,7 +139,7 @@ class SyncOrdersCommand extends Command
                 )),
             );
 
-            return Command::INVALID;
+            return self::INVALID;
         }
 
         $filterOrderIds = $this->getOrderIdsToFilter(
