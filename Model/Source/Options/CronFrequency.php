@@ -50,16 +50,20 @@ class CronFrequency implements OptionSourceInterface
                     'label' => __('Hourly'),
                 ],
                 [
-                    'value' => '0 */6 * * *',
-                    'label' => __('Every 6 hours'),
+                    'value' => '0 2,5,8,11,14,17,20,23 * * *',
+                    'label' => __('Every 3 hours (from 2am)'),
                 ],
                 [
-                    'value' => '0 */12 * * *',
-                    'label' => __('Every 12 hours'),
+                    'value' => '0 2,8,14,20 * * *',
+                    'label' => __('Every 6 hours (from 2am)'),
                 ],
                 [
-                    'value' => '0 0 * * *',
-                    'label' => __('Once a day'),
+                    'value' => '0 2,14 * * *',
+                    'label' => __('Every 12 hours (from 2am)'),
+                ],
+                [
+                    'value' => '0 2 * * *',
+                    'label' => __('Daily (at 2am)'),
                 ],
                 [
                     'value' => static::OPTION_CUSTOM,

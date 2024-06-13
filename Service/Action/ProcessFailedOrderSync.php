@@ -90,6 +90,9 @@ class ProcessFailedOrderSync implements ProcessFailedOrderSyncActionInterface
             ScopeInterface::SCOPE_STORES,
             $order->getStoreId(),
         );
+        $maxAttempts = (is_numeric($maxAttempts) && $maxAttempts > 0)
+            ? (int)$maxAttempts
+            : 1;
 
         $orderId = (int)$order->getEntityId();
         if ($syncOrderRecord->getAttempts() < $maxAttempts) {

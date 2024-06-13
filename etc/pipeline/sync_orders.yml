@@ -6,6 +6,8 @@ stages:
     stages:
       iterateOrders:
         pipeline: Pipeline\Iterate
+        args:
+          maxIterations: ~
         stages:
           processOrderStart:
             stages:
@@ -76,6 +78,12 @@ stages:
                                   # By using an extraction as our accessor (denoted with the leading $), we tell
                                   # the pipeline to evaluate the ip_address extraction in runtime
                                   extraction: $config::getForCurrentStore().ip_address_accessor
+                                  # Magento may store a comma separated list here - use the first item
+                                  transformations:
+                                    - ToString
+                                    - Split(",")
+                                    - Trim
+                                    - FirstItem
                               email:
                                 pipeline: Pipeline\Fallback
                                 stages:
