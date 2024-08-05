@@ -42,6 +42,7 @@ use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @method RemoveSyncedOrderHistory instantiateTestObject(?array $arguments)
+ * @magentoDbIsolation disabled
  */
 class RemoveSyncedOrderHistoryTest extends TestCase
 {

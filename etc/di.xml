@@ -34,6 +34,8 @@
 
     <preference for="Klevu\AnalyticsOrderSyncApi\Service\Provider\ConsolidatedGroupedProductOrderItemProviderInterface"
                 type="Klevu\AnalyticsOrderSync\Service\Provider\ConsolidatedGroupedProductOrderItemProvider"/>
+    <preference for="Klevu\AnalyticsOrderSyncApi\Service\Provider\DuplicateOrderIpsProviderInterface"
+                type="Klevu\AnalyticsOrderSync\Service\Provider\DuplicateOrderIpsProvider"/>
     <preference for="Klevu\AnalyticsOrderSyncApi\Service\Provider\PermittedOrderStatusProviderInterface"
                 type="Klevu\AnalyticsOrderSync\Service\Provider\PermittedOrderStatusProvider"/>
     <preference for="Klevu\AnalyticsOrderSyncApi\Service\Provider\SyncOrderForOrderProviderInterface"
