@@ -9,6 +9,8 @@
                 <cron_expr>*/5 * * * *</cron_expr>
                 <exclude_status_from_sync/>
                 <ip_address_attribute>remote_ip</ip_address_attribute>
+                <duplicate_ip_address_period_days>7</duplicate_ip_address_period_days>
+                <duplicate_ip_address_threshold>0.2</duplicate_ip_address_threshold>
                 <sync_order_max_attempts>3</sync_order_max_attempts>
                 <requeue_processing_orders_after_minutes>15</requeue_processing_orders_after_minutes>
                 <remove_synced_order_history_after_days/>

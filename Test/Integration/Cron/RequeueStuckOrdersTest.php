@@ -38,6 +38,7 @@ use TddWizard\Fixtures\Core\ConfigFixture;
 
 /**
  * @method RequeueStuckOrders instantiateTestObject(?array $arguments)
+ * @magentoDbIsolation disabled
  */
 class RequeueStuckOrdersTest extends TestCase
 {

@@ -24,10 +24,8 @@ use Klevu\AnalyticsOrderSync\Model\Source\SyncOrderHistory\Actions;
 use Klevu\AnalyticsOrderSync\Model\Source\SyncOrderHistory\Results;
 use Klevu\AnalyticsOrderSync\Model\SyncOrderHistory;
 use Klevu\AnalyticsOrderSync\Test\Fixtures\Order\OrderTrait;
+use Klevu\AnalyticsOrderSync\Test\Integration\Traits\CreateOrderInStoreTrait;
 use Klevu\AnalyticsOrderSyncApi\Api\Data\SyncOrderHistoryInterface;
-use Klevu\AnalyticsOrderSyncApi\Api\MarkOrderAsProcessedActionInterface;
-use Klevu\AnalyticsOrderSyncApi\Api\MarkOrderAsProcessingActionInterface;
-use Klevu\AnalyticsOrderSyncApi\Api\QueueOrderForSyncActionInterface;
 use Klevu\AnalyticsOrderSyncApi\Api\SyncOrderHistoryRepositoryInterface;
 use Klevu\AnalyticsOrderSyncApi\Api\SyncOrderRepositoryInterface;
 use Klevu\AnalyticsOrderSyncApi\Service\Provider\SyncEnabledStoresProviderInterface;
@@ -38,8 +36,6 @@ use Klevu\PhpSDK\Service\Analytics\CollectService;
 use Klevu\Pipelines\ObjectManager\Container;
 use Klevu\Pipelines\ObjectManager\ObjectManagerInterface as PipelinesObjectManagerInterface;
 use Klevu\PlatformPipelines\ObjectManager\Container as PlatformPipelinesContainer;
-use Klevu\TestFixtures\Catalog\ConfigurableProductBuilder;
-use Klevu\TestFixtures\Catalog\GroupedProductBuilder;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
 use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
@@ -52,21 +48,15 @@ use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
-use Magento\Sales\Api\Data\InvoiceInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderItemInterface;
-use Magento\Sales\Api\Data\ShipmentInterface;
-use Magento\Sales\Model\Order;
-use Magento\Store\Api\Data\StoreInterface;
-use Magento\Store\Api\Data\WebsiteInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\Constraint\Callback;
@@ -80,12 +70,7 @@ use Psr\Http\Client\RequestExceptionInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
-use TddWizard\Fixtures\Catalog\ProductBuilder;
-use TddWizard\Fixtures\Checkout\CartBuilder;
 use TddWizard\Fixtures\Core\ConfigFixture;
-use TddWizard\Fixtures\Sales\InvoiceBuilder;
-use TddWizard\Fixtures\Sales\OrderBuilder;
-use TddWizard\Fixtures\Sales\ShipmentBuilder;
 
 /**
  * @method ProcessEventsServiceInterface instantiateTestObject(?array $arguments = null)
@@ -101,6 +86,7 @@ class ProcessOrderEventsTest extends TestCase
     }
     use TestImplementsInterfaceTrait;
     use OrderTrait;
+    use CreateOrderInStoreTrait;
     use StoreTrait;
     use WebsiteTrait;
 
@@ -139,6 +125,10 @@ class ProcessOrderEventsTest extends TestCase
      * @var StoreManagerInterface|null
      */
     private ?StoreManagerInterface $storeManager = null;
+    /**
+     * @var OrderRepositoryInterface|null
+     */
+    private ?OrderRepositoryInterface $orderRepository = null;
     /**
      * @var (ClientInterface&MockObject)|null
      */
@@ -180,6 +170,7 @@ class ProcessOrderEventsTest extends TestCase
         $this->sortOrderBuilder = $this->objectManager->get(SortOrderBuilder::class);
         $this->searchCriteriaBuilder = $this->objectManager->get(SearchCriteriaBuilder::class);
         $this->storeManager = $this->objectManager->get(StoreManagerInterface::class);
+        $this->orderRepository = $this->objectManager->get(OrderRepositoryInterface::class);
 
         $this->mockHttpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
 
@@ -2410,315 +2401,6 @@ class ProcessOrderEventsTest extends TestCase
                 path: $path,
                 value: $value,
             );
-        }
-    }
-
-    // -- Fixtures and Mocks
-
-    /**
-     * @param string $storeCode
-     * @param WebsiteInterface $website
-     * @param string|null $klevuApiKey
-     * @param bool $syncEnabled
-     * @return StoreInterface
-     * @throws \Exception
-     */
-    private function createStoreFixture(
-        string $storeCode,
-        WebsiteInterface $website,
-        ?string $klevuApiKey,
-        bool $syncEnabled,
-    ): StoreInterface {
-        try {
-            $store = $this->storeManager->getStore($storeCode);
-            $this->storeFixturesPool->add($store);
-        } catch (NoSuchEntityException) {
-            $this->createStore([
-                'code' => $storeCode,
-                'key' => $storeCode,
-                'website_id' => (int)$website->getId(),
-                'with_sequence' => true,
-            ]);
-            $storeFixture = $this->storeFixturesPool->get($storeCode);
-            $store = $storeFixture->get();
-        }
-
-        if ($klevuApiKey) {
-            ConfigFixture::setForStore(
-                path: ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY,
-                value: $klevuApiKey,
-                storeCode: $storeCode,
-            );
-            ConfigFixture::setForStore(
-                path: AuthKeyProvider::CONFIG_XML_PATH_REST_AUTH_KEY,
-                value: self::FIXTURE_REST_AUTH_KEY,
-                storeCode: $storeCode,
-            );
-        }
-        ConfigFixture::setForStore(
-            path: Constants::XML_PATH_ORDER_SYNC_ENABLED,
-            value: (int)$syncEnabled,
-            storeCode: $storeCode,
-        );
-
-        return $store;
-    }
-
-    /**
-     * @param string $storeCode
-     * @param string $status
-     * @param mixed[] $orderData
-     * @param mixed[] $orderItemsData
-     * @param Statuses $syncStatus
-     * @return OrderInterface
-     * @throws NoSuchEntityException
-     * @todo Alternative product types
-     */
-    private function createOrderInStore(
-        string $storeCode,
-        string $status,
-        array $orderData,
-        array $orderItemsData,
-        Statuses $syncStatus,
-    ): OrderInterface {
-        $store = $this->storeManager->getStore($storeCode);
-        $this->storeManager->setCurrentStore($store);
-
-        $orderBuilder = OrderBuilder::anOrder();
-        $orderBuilder = $orderBuilder->withProducts(
-            ...array_map(
-                static function (array $orderItemData): ProductBuilder {
-                    switch ($orderItemData['product_type'] ?? ProductType::TYPE_SIMPLE) {
-                        case ProductType::TYPE_SIMPLE:
-                            $return = ProductBuilder::aSimpleProduct();
-                            $return = $return->withData($orderItemData);
-                            $return = $return->withSku($orderItemData['sku']);
-                            break;
-
-                        case ProductType::TYPE_VIRTUAL:
-                            $return = ProductBuilder::aVirtualProduct();
-                            $return = $return->withData($orderItemData);
-                            $return = $return->withSku($orderItemData['sku']);
-                            break;
-
-                        case Grouped::TYPE_CODE:
-                            $return = GroupedProductBuilder::aGroupedProduct()
-                                ->withSku($orderItemData['sku']);
-                            if (isset($orderItemData['name'])) {
-                                $return = $return->withName($orderItemData['name']);
-                            }
-
-                            $configuration = $orderItemData['configuration'];
-                            foreach ($configuration['product_links'] ?? [] as $linkedProductData) {
-                                $linkedProductBuilder = ProductBuilder::aSimpleProduct();
-                                $linkedProductBuilder = $linkedProductBuilder->withData($linkedProductData);
-
-                                $linkedProductBuilder = $linkedProductBuilder->withSku(
-                                    sku: $linkedProductData['sku'] ?? ($orderItemData['sku'] . '_lp' . rand(0, 99)),
-                                );
-                                $linkedProductBuilder = $linkedProductBuilder->withPrice(
-                                    price: $linkedProductData['price'] ?? 100.00,
-                                );
-
-                                $return = $return->withLinkedProduct($linkedProductBuilder);
-                            }
-                            break;
-
-                        case Configurable::TYPE_CODE:
-                            $return = ConfigurableProductBuilder::aConfigurableProduct()
-                                ->withSku($orderItemData['sku']);
-                            if (isset($orderItemData['name'])) {
-                                $return = $return->withName($orderItemData['name']);
-                            }
-
-                            $configuration = $orderItemData['configuration'];
-                            foreach ($configuration['configurable_attribute_codes'] ?? [] as $attributeCode) {
-                                $return = $return->withConfigurableAttribute($attributeCode);
-                            }
-                            foreach ($configuration['variants'] ?? [] as $variantProductData) {
-                                $variantProductBuilder = ProductBuilder::aSimpleProduct();
-                                $variantProductBuilder = $variantProductBuilder->withData($variantProductData);
-
-                                $variantProductBuilder = $variantProductBuilder->withSku(
-                                    sku: $variantProductData['sku'] ?? ($orderItemData['sku'] . '_v' . rand(0, 99)),
-                                );
-                                $variantProductBuilder = $variantProductBuilder->withPrice(
-                                    price: $variantProductData['price'] ?? 100.00,
-                                );
-
-                                $return = $return->withVariant($variantProductBuilder);
-                            }
-                            break;
-
-                        default:
-                            throw new \LogicException(sprintf(
-                                'Unsupported product type %s',
-                                $orderItemData['product_type'] ?? null,
-                            ));
-                    }
-
-                    return $return;
-                },
-                $orderItemsData,
-            ),
-        );
-
-        $cartBuilder = CartBuilder::forCurrentSession();
-        foreach ($orderItemsData as $orderItem) {
-            $cartBuilder = match ($orderItem['product_type'] ?? 'simple') {
-                Grouped::TYPE_CODE => $cartBuilder->withGroupedProduct(
-                    sku: $orderItem['sku'],
-                    options: $orderItem['options'] ?? [],
-                    qty: $orderItem['qty'] ?? 1,
-                ),
-                Configurable::TYPE_CODE => $cartBuilder->withConfigurableProduct(
-                    sku: $orderItem['sku'],
-                    options: $orderItem['options'] ?? [],
-                    qty: $orderItem['qty'] ?? 1,
-                ),
-                default => $cartBuilder->withSimpleProduct(
-                    sku: $orderItem['sku'],
-                    qty: $orderItem['qty'] ?? 1.0,
-                ),
-            };
-        }
-
-        $orderBuilder = $orderBuilder->withCart($cartBuilder);
-
-        $order = $orderBuilder->build();
-        foreach ($orderData as $key => $value) {
-            $order->setDataUsingMethod($key, $value);
-        }
-
-        switch ($status) {
-            case 'processing':
-                $this->invoiceOrder($order);
-                break;
-
-            case 'complete':
-                $this->invoiceOrder($order);
-                $this->shipOrder($order);
-                break;
-        }
-
-        $this->orderFixtures[$order->getEntityId()] = $order;
-
-        $this->createOrUpdateSyncOrderRecord(
-            order: $order,
-            syncStatus: $syncStatus,
-        );
-
-        return $order;
-    }
-
-    /**
-     * @param OrderInterface|Order $order
-     * @return ShipmentInterface
-     */
-    private function shipOrder(
-        OrderInterface $order,
-    ): ShipmentInterface {
-        if (!($order instanceof Order)) {
-            throw new \InvalidArgumentException(sprintf(
-                'Order argument must be instance of %s; received %s in %s',
-                Order::class,
-                get_debug_type($order),
-                __METHOD__,
-            ));
-        }
-
-        $shipmentBuilder = ShipmentBuilder::forOrder($order);
-
-        return $shipmentBuilder->build();
-    }
-
-    /**
-     * @param OrderInterface|Order $order
-     * @return InvoiceInterface
-     */
-    private function invoiceOrder(
-        OrderInterface $order,
-    ): InvoiceInterface {
-        if (!($order instanceof Order)) {
-            throw new \InvalidArgumentException(sprintf(
-                'Order argument must be instance of %s; received %s in %s',
-                Order::class,
-                get_debug_type($order),
-                __METHOD__,
-            ));
-        }
-
-        $invoiceBuilder = InvoiceBuilder::forOrder($order);
-
-        return $invoiceBuilder->build();
-    }
-
-    /**
-     * @param OrderInterface $order
-     * @param Statuses $syncStatus
-     * @param int|null $attempts
-     * @return void
-     * @throws NoSuchEntityException
-     * @throws AlreadyExistsException
-     * @throws CouldNotSaveException
-     * @throws LocalizedException
-     */
-    private function createOrUpdateSyncOrderRecord(
-        OrderInterface $order,
-        Statuses $syncStatus,
-        ?int $attempts = null,
-    ): void {
-        if (!($order instanceof Order)) {
-            throw new \InvalidArgumentException(sprintf(
-                'Order argument must be instance of %s; received %s in %s',
-                Order::class,
-                get_debug_type($order),
-                __METHOD__,
-            ));
-        }
-
-        switch ($syncStatus) {
-            case Statuses::QUEUED:
-            case Statuses::RETRY:
-            case Statuses::PARTIAL:
-                /** @var QueueOrderForSyncActionInterface $queueOrderForSyncAction */
-                $queueOrderForSyncAction = $this->objectManager->get(QueueOrderForSyncActionInterface::class);
-                $queueOrderForSyncAction->execute(
-                    orderId: (int)$order->getId(),
-                    via: 'PHPUnit: Update Fixture',
-                );
-                break;
-
-            case Statuses::PROCESSING:
-                /** @var MarkOrderAsProcessingActionInterface $markOrderAsProcessingAction */
-                $markOrderAsProcessingAction = $this->objectManager->get(MarkOrderAsProcessingActionInterface::class);
-                $markOrderAsProcessingAction->execute(
-                    orderId: (int)$order->getId(),
-                    via: 'PHPUnit: Update Fixture',
-                );
-                break;
-
-            case Statuses::SYNCED:
-            case Statuses::ERROR:
-                /** @var MarkOrderAsProcessedActionInterface $markOrderAsProcessedAction */
-                $markOrderAsProcessedAction = $this->objectManager->get(MarkOrderAsProcessedActionInterface::class);
-                $markOrderAsProcessedAction->execute(
-                    orderId: (int)$order->getId(),
-                    resultStatus: $syncStatus->value,
-                    via: 'PHPUnit: Update Fixture',
-                );
-                break;
-
-            default:
-                break;
-        }
-
-        if (null !== $attempts) {
-            $syncOrder = $this->syncOrderRepository->getByOrderId(
-                orderId: (int)$order->getEntityId(),
-            );
-            $syncOrder->setAttempts($attempts);
-            $this->syncOrderRepository->save($syncOrder);
         }
     }
 

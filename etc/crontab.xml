@@ -17,5 +17,10 @@
              method="execute">
             <schedule>0 0 * * *</schedule>
         </job>
+        <job name="klevu_analytics_check_duplicate_order_ips"
+             instance="Klevu\AnalyticsOrderSync\Cron\CheckDuplicateOrderIps"
+             method="execute">
+            <schedule>0 1 * * *</schedule>
+        </job>
     </group>
 </config>
