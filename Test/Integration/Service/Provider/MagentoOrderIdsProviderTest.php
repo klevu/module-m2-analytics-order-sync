@@ -11,8 +11,10 @@ declare(strict_types=1);
 
 namespace Klevu\AnalyticsOrderSync\Test\Integration\Service\Provider;
 
+use Klevu\AnalyticsOrderSync\Model\Source\SyncOrder\Statuses;
 use Klevu\AnalyticsOrderSync\Service\Provider\MagentoOrderIdsProvider;
 use Klevu\AnalyticsOrderSync\Test\Fixtures\Order\OrderTrait;
+use Klevu\AnalyticsOrderSync\Test\Integration\Traits\CreateOrderInStoreTrait;
 use Klevu\AnalyticsOrderSyncApi\Api\SyncOrderRepositoryInterface;
 use Klevu\AnalyticsOrderSyncApi\Service\Provider\MagentoOrderIdsProviderInterface;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
@@ -23,7 +25,9 @@ use Klevu\TestFixtures\Traits\TestInterfacePreferenceTrait;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use TddWizard\Fixtures\Sales\InvoiceBuilder;
@@ -35,11 +39,14 @@ use TddWizard\Fixtures\Sales\ShipmentBuilder;
  */
 class MagentoOrderIdsProviderTest extends TestCase
 {
+    use CreateOrderInStoreTrait;
     use ObjectInstantiationTrait;
-    use TestImplementsInterfaceTrait;
-    use TestInterfacePreferenceTrait;
     use OrderTrait;
     use StoreTrait;
+    use TestImplementsInterfaceTrait;
+    use TestInterfacePreferenceTrait;
+
+    public const FIXTURE_REST_AUTH_KEY = 'ABCDE1234567890';
 
     /**
      * @var ObjectManagerInterface|null
@@ -53,6 +60,14 @@ class MagentoOrderIdsProviderTest extends TestCase
      * @var SyncOrderRepositoryInterface|null
      */
     private ?SyncOrderRepositoryInterface $syncOrderRepository = null;
+    /**
+     * @var StoreManagerInterface|null
+     */
+    private ?StoreManagerInterface $storeManager = null;
+    /**
+     * @var OrderRepositoryInterface|null
+     */
+    private ?OrderRepositoryInterface $orderRepository = null;
 
     /**
      * @return void
@@ -68,6 +83,8 @@ class MagentoOrderIdsProviderTest extends TestCase
 
         $this->searchCriteriaBuilder = $this->objectManager->get(SearchCriteriaBuilder::class);
         $this->syncOrderRepository = $this->objectManager->get(SyncOrderRepositoryInterface::class);
+        $this->storeManager = $this->objectManager->get(StoreManagerInterface::class);
+        $this->orderRepository = $this->objectManager->get(OrderRepositoryInterface::class);
 
         $this->storeFixturesPool = $this->objectManager->get(StoreFixturesPool::class);
         $this->orderFixtures = [];
@@ -126,6 +143,7 @@ class MagentoOrderIdsProviderTest extends TestCase
     public function testGetByCriteria_OrderStatus(): void
     {
         $orders = [];
+
         for ($i = 0; $i < 5; $i++) {
             $orders[] = $this->getOrderFixture();
         }
@@ -166,14 +184,32 @@ class MagentoOrderIdsProviderTest extends TestCase
      */
     public function testGetByCriteria_StoreId(): void
     {
-        $this->createStore([
-            'code' => 'klevu_analytics_test_store_1',
-            'key' => 'test_store_1',
-        ]);
-        $testStore = $this->storeFixturesPool->get('test_store_1');
+        $testStore1 = $this->createStoreFixture(
+            storeCode: 'klevu_analytics_test_store_1',
+            website: $this->storeManager->getWebsite('base'),
+            klevuApiKey: 'klevu-1234567890',
+            syncEnabled: false,
+        );
+        $testStore2 = $this->createStoreFixture(
+            storeCode: 'klevu_analytics_test_store_2',
+            website: $this->storeManager->getWebsite('base'),
+            klevuApiKey: 'klevu-9876543210',
+            syncEnabled: false,
+        );
 
+        $this->initOrderSyncEnabled(false);
         for ($i = 0; $i < 5; $i++) {
-            $this->getOrderFixture(false);
+            $this->createOrderInStore(
+                storeCode: 'klevu_analytics_test_store_1',
+                status: 'pending',
+                orderData: [],
+                orderItemsData: [
+                    [
+                        'sku' => 'test_product_' . rand(1, 99999),
+                    ],
+                ],
+                syncStatus: Statuses::NOT_REGISTERED,
+            );
         }
         $allOrderIds = array_map(
             static fn (OrderInterface $order): int => (int)$order->getEntityId(),
@@ -184,7 +220,7 @@ class MagentoOrderIdsProviderTest extends TestCase
 
         $this->searchCriteriaBuilder->addFilter(
             field: 'store_id',
-            value: 1,
+            value: $testStore1->getId(),
             conditionType: 'eq',
         );
         $searchCriteria = $this->searchCriteriaBuilder->create();
@@ -197,7 +233,7 @@ class MagentoOrderIdsProviderTest extends TestCase
 
         $this->searchCriteriaBuilder->addFilter(
             field: 'store_id',
-            value: (int)$testStore->getId(),
+            value: (int)$testStore2->getId(),
             conditionType: 'eq',
         );
         $searchCriteria = $this->searchCriteriaBuilder->create();

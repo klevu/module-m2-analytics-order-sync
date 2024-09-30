@@ -23,6 +23,7 @@ use Klevu\AnalyticsOrderSync\Model\Source\SyncOrder\Statuses;
 use Klevu\AnalyticsOrderSync\Model\Source\SyncOrderHistory\Actions;
 use Klevu\AnalyticsOrderSync\Model\Source\SyncOrderHistory\Results;
 use Klevu\AnalyticsOrderSync\Model\SyncOrderHistory;
+use Klevu\AnalyticsOrderSync\Service\Provider\GeneratedConfigurationOverridesFilepathProvider as GeneratedConfigurationOverridesFilepathProviderVirtualType; // phpcs:ignore Generic.Files.LineLength.TooLong
 use Klevu\AnalyticsOrderSync\Test\Fixtures\Order\OrderTrait;
 use Klevu\AnalyticsOrderSync\Test\Integration\Traits\CreateOrderInStoreTrait;
 use Klevu\AnalyticsOrderSyncApi\Api\Data\SyncOrderHistoryInterface;
@@ -36,6 +37,7 @@ use Klevu\PhpSDK\Service\Analytics\CollectService;
 use Klevu\Pipelines\ObjectManager\Container;
 use Klevu\Pipelines\ObjectManager\ObjectManagerInterface as PipelinesObjectManagerInterface;
 use Klevu\PlatformPipelines\ObjectManager\Container as PlatformPipelinesContainer;
+use Klevu\PlatformPipelines\Service\Provider\GeneratedConfigurationOverridesFilepathProviderInterface;
 use Klevu\TestFixtures\Store\StoreFixturesPool;
 use Klevu\TestFixtures\Store\StoreTrait;
 use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
@@ -50,6 +52,7 @@ use Magento\Framework\Api\SortOrderBuilder;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Filesystem\Io\File as FileIo;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 use Magento\Framework\Serialize\SerializerInterface;
@@ -159,6 +162,10 @@ class ProcessOrderEventsTest extends TestCase
         $this->implementationFqcn = self::PROVIDER_VIRTUAL_TYPE;
         $this->interfaceFqcn = ProcessEventsServiceInterface::class;
 
+        $this->constructorArgumentDefaults = [
+            'pipelineIdentifier' => 'ORDER::queued',
+        ];
+
         /** @var ScopeProviderInterface $scopeProvider */
         $scopeProvider = $this->objectManager->get(ScopeProviderInterface::class);
         $scopeProvider->unsetCurrentScope();
@@ -172,7 +179,7 @@ class ProcessOrderEventsTest extends TestCase
         $this->storeManager = $this->objectManager->get(StoreManagerInterface::class);
         $this->orderRepository = $this->objectManager->get(OrderRepositoryInterface::class);
 
-        $this->mockHttpClient = $this->getMockBuilder(ClientInterface::class)->getMock();
+        $this->mockHttpClient = $this->getMockBuilder(GuzzleHttpClient::class)->getMock();
 
         Container::setInstance(
             container: $this->objectManager->get(PlatformPipelinesContainer::class),
@@ -205,6 +212,7 @@ class ProcessOrderEventsTest extends TestCase
             Constants::XML_PATH_ORDER_SYNC_IP_ADDRESS_ATTRIBUTE => 'remote_ip',
         ];
         $this->setSystemConfig();
+        $this->touchConfigurationOverridesFile();
     }
 
     /**
@@ -234,6 +242,11 @@ class ProcessOrderEventsTest extends TestCase
             website: $this->storeManager->getWebsite('base'),
             klevuApiKey: null,
             syncEnabled: false,
+        );
+        ConfigFixture::setForStore(
+            path: ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY,
+            value: '',
+            storeCode: 'klevu_analytics_test_store_1',
         );
         $this->setExcludedOrderStatusesForStore(
             storeCode: 'klevu_analytics_test_store_1',
@@ -270,6 +283,12 @@ class ProcessOrderEventsTest extends TestCase
             klevuApiKey: null,
             syncEnabled: false,
         );
+        ConfigFixture::setForStore(
+            path: ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY,
+            value: '',
+            storeCode: 'klevu_analytics_test_store_1',
+        );
+
         $this->setExcludedOrderStatusesForStore(
             storeCode: 'klevu_analytics_test_store_1',
             excludedOrderStatuses: [],
@@ -326,6 +345,11 @@ class ProcessOrderEventsTest extends TestCase
             klevuApiKey: null,
             syncEnabled: true,
         );
+        ConfigFixture::setForStore(
+            path: ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY,
+            value: '',
+            storeCode: 'klevu_analytics_test_store_1',
+        );
         $this->setExcludedOrderStatusesForStore(
             storeCode: 'klevu_analytics_test_store_1',
             excludedOrderStatuses: [],
@@ -352,7 +376,6 @@ class ProcessOrderEventsTest extends TestCase
      *  Int | En. | Ord
      * -----+-----+-----
      *   𐄂  |  ✓  |  ✓
-     * @group wip
      */
     public function testExecute_NotIntegrated_SyncEnabled_OrdersToProcess(): void
     {
@@ -361,6 +384,11 @@ class ProcessOrderEventsTest extends TestCase
             website: $this->storeManager->getWebsite('base'),
             klevuApiKey: null,
             syncEnabled: true,
+        );
+        ConfigFixture::setForStore(
+            path: ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY,
+            value: '',
+            storeCode: 'klevu_analytics_test_store_1',
         );
         $this->setExcludedOrderStatusesForStore(
             storeCode: 'klevu_analytics_test_store_1',
@@ -409,7 +437,6 @@ class ProcessOrderEventsTest extends TestCase
      *  Int | En. | Ord
      * -----+-----+-----
      *   𐄂✓ |  ✓  |  ✓
-     * @group wip
      */
     public function testExecute_MixedIntegrated_SyncEnabled_OrdersToProcess(): void
     {
@@ -418,6 +445,11 @@ class ProcessOrderEventsTest extends TestCase
             website: $this->storeManager->getWebsite('base'),
             klevuApiKey: null,
             syncEnabled: true,
+        );
+        ConfigFixture::setForStore(
+            path: ApiKeyProvider::CONFIG_XML_PATH_JS_API_KEY,
+            value: '',
+            storeCode: 'klevu_analytics_test_store_1',
         );
         $this->setExcludedOrderStatusesForStore(
             storeCode: 'klevu_analytics_test_store_1',
@@ -2681,6 +2713,28 @@ class ProcessOrderEventsTest extends TestCase
         );
 
         return $return;
+    }
+
+    /**
+     * @return void
+     * @throws LocalizedException
+     */
+    private function touchConfigurationOverridesFile(): void
+    {
+        /** @var GeneratedConfigurationOverridesFilepathProviderInterface $generatedConfigurationOverridesFilepathProvider */
+        $generatedConfigurationOverridesFilepathProvider = $this->objectManager->get(
+            GeneratedConfigurationOverridesFilepathProviderVirtualType::class, // @phpstan-ignore-line virtual type
+        );
+        $filename = $generatedConfigurationOverridesFilepathProvider->get();
+        /** @var FileIo $fileIo */
+        $fileIo = $this->objectManager->get(FileIo::class);
+        $fileIo->checkAndCreateFolder(
+            folder: pathinfo($filename, PATHINFO_DIRNAME),
+        );
+        $fileIo->write(
+            filename: $filename,
+            src: '# Via PHPUnit' . PHP_EOL,
+        );
     }
 
     // -- Misc

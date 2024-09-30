@@ -40,14 +40,12 @@ trait OrderTrait
 
     /**
      * @param bool $orderSyncEnabled
-     * @param int $orderLines
-     * @return OrderInterface
-     * @throws \Exception
+     *
+     * @return void
      */
-    private function getOrderFixture(
-        bool $orderSyncEnabled = true,
-        int $orderLines = 1,
-    ): OrderInterface {
+    private function initOrderSyncEnabled(
+        bool $orderSyncEnabled,
+    ): void {
         $syncEnabledStoresProvider = $this->objectManager->get(SyncEnabledStoresProviderInterface::class);
         $syncEnabledStoresProvider->clearCache();
 
@@ -63,6 +61,19 @@ trait OrderTrait
             path: AuthKeyProvider::CONFIG_XML_PATH_REST_AUTH_KEY,
             value: 'ABCDE1234567890',
         );
+    }
+
+    /**
+     * @param bool $orderSyncEnabled
+     * @param int $orderLines
+     * @return OrderInterface
+     * @throws \Exception
+     */
+    private function getOrderFixture(
+        bool $orderSyncEnabled = true,
+        int $orderLines = 1,
+    ): OrderInterface {
+        $this->initOrderSyncEnabled($orderSyncEnabled);
 
         $orderBuilder = OrderBuilder::anOrder();
         $skus = array_map(

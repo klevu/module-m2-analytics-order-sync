@@ -15,13 +15,57 @@ use Klevu\AnalyticsOrderSync\Model\ResourceModel\SyncOrder as SyncOrderResource;
 use Klevu\AnalyticsOrderSync\Model\ResourceModel\SyncOrderHistory as SyncOrderHistoryResource;
 use Klevu\AnalyticsOrderSync\Model\SyncOrder as SyncOrderModel;
 use Klevu\AnalyticsOrderSync\Model\SyncOrderHistory as SyncOrderHistoryModel;
+use Magento\Framework\Data\Collection\Db\FetchStrategyInterface;
+use Magento\Framework\Data\Collection\EntityFactoryInterface;
+use Magento\Framework\DB\Adapter\AdapterInterface;
+use Magento\Framework\DB\Sql\ExpressionFactory;
+use Magento\Framework\Event\ManagerInterface;
+use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 use Magento\Sales\Api\Data\OrderInterface;
+use Psr\Log\LoggerInterface;
 
 class Collection extends AbstractCollection
 {
     use ExtendedAddFieldToFilterTrait {
         addFieldToFilter as extendedAddFieldToFilter;
+    }
+
+    /**
+     * @var ExpressionFactory
+     */
+    private readonly ExpressionFactory $expressionFactory;
+
+    /**
+     * @param ExpressionFactory $expressionFactory
+     * @param EntityFactoryInterface $entityFactory
+     * @param LoggerInterface $logger
+     * @param FetchStrategyInterface $fetchStrategy
+     * @param ManagerInterface $eventManager
+     * @param AdapterInterface|null $connection
+     * @param AbstractDb|null $resource
+     */
+    public function __construct(
+        ExpressionFactory $expressionFactory,
+        EntityFactoryInterface $entityFactory,
+        LoggerInterface $logger,
+        FetchStrategyInterface $fetchStrategy,
+        ManagerInterface $eventManager,
+        // phpcs:disable SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue.NullabilityTypeMissing
+        AdapterInterface $connection = null,
+        AbstractDb $resource = null,
+        // phpcs:enable SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue.NullabilityTypeMissing
+    ) {
+        parent::__construct(
+            entityFactory: $entityFactory,
+            logger: $logger,
+            fetchStrategy: $fetchStrategy,
+            eventManager: $eventManager,
+            connection: $connection,
+            resource: $resource,
+        );
+
+        $this->expressionFactory = $expressionFactory;
     }
 
     /**
@@ -84,8 +128,8 @@ class Collection extends AbstractCollection
                     $this->_map['table_aliases'][$salesOrderTableName],
                     OrderInterface::STATUS,
                 ),
-                'last_history_timestamp' => new \Zend_Db_Expr(
-                    sprintf(
+                'last_history_timestamp' => $this->expressionFactory->create([
+                    'expression' => sprintf(
                         '(SELECT MAX(%s) '
                         . 'FROM %s '
                         . 'WHERE %s.%s = main_table.%s)',
@@ -95,7 +139,7 @@ class Collection extends AbstractCollection
                         SyncOrderHistoryModel::FIELD_SYNC_ORDER_ID,
                         SyncOrderModel::FIELD_ENTITY_ID,
                     ),
-                ),
+                ]),
             ];
         }
 
