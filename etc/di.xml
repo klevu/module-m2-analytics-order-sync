@@ -130,6 +130,21 @@
         </arguments>
     </type>
 
+    <type name="Klevu\PlatformPipelines\Service\Provider\PipelineConfigurationProvider">
+        <arguments>
+            <argument name="pipelineConfigurationFilepaths" xsi:type="array">
+                <item name="ORDER::queued" xsi:type="string">Klevu_AnalyticsOrderSync::etc/pipeline/sync_orders.yml</item>
+                <item name="ORDER::retry" xsi:type="string">Klevu_AnalyticsOrderSync::etc/pipeline/sync_orders.yml</item>
+            </argument>
+            <argument name="pipelineConfigurationOverridesFilepathsProviders" xsi:type="array">
+                <item name="ORDER::queued"
+                      xsi:type="object">Klevu\AnalyticsOrderSync\Service\Provider\PipelineConfigurationOverridesFilepathsProvider</item>
+                <item name="ORDER::retry"
+                      xsi:type="object">Klevu\AnalyticsOrderSync\Service\Provider\PipelineConfigurationOverridesFilepathsProvider</item>
+            </argument>
+        </arguments>
+    </type>
+
     <virtualType name="Klevu\AnalyticsOrderSync\Service\ProcessOrderEvents"
                  type="Klevu\Analytics\Service\ProcessEvents">
         <arguments>
@@ -138,16 +153,20 @@
             <argument name="pipelineContextProviders" xsi:type="array">
                 <item name="config" xsi:type="object">Klevu\AnalyticsOrderSync\Service\Provider\PipelineContext\ConfigProvider</item>
             </argument>
-            <argument name="pipelineConfigurationFilepath" xsi:type="string">Klevu_AnalyticsOrderSync::etc/pipeline/sync_orders.yml</argument>
+            <argument name="configurationOverridesHandler" xsi:type="object">Klevu\AnalyticsOrderSync\Service\ConfigurationOverridesHandler</argument>
         </arguments>
     </virtualType>
     <virtualType name="Klevu\AnalyticsOrderSync\Service\ProcessOrderEvents\Queued"
                  type="Klevu\AnalyticsOrderSync\Service\ProcessOrderEvents">
-
+        <arguments>
+            <argument name="pipelineIdentifier" xsi:type="string">ORDER::queued</argument>
+        </arguments>
     </virtualType>
     <virtualType name="Klevu\AnalyticsOrderSync\Service\ProcessOrderEvents\Retry"
                  type="Klevu\AnalyticsOrderSync\Service\ProcessOrderEvents">
-
+        <arguments>
+            <argument name="pipelineIdentifier" xsi:type="string">ORDER::retry</argument>
+        </arguments>
     </virtualType>
 
     <type name="Klevu\AnalyticsOrderSync\Service\Provider\ConsolidatedGroupedProductOrderItemProvider">
@@ -220,6 +239,35 @@
         </arguments>
     </type>
 
+    <virtualType name="Klevu\AnalyticsOrderSync\Service\Provider\GeneratedConfigurationOverridesFilepathProvider"
+                 type="Klevu\Analytics\Service\Provider\GeneratedConfigurationOverridesFilepathProvider">
+        <arguments>
+            <argument name="filepathInVar" xsi:type="string">klevu/analytics/pipeline/order/overrides.yml</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Klevu\AnalyticsOrderSync\Service\Provider\PipelineConfigurationOverridesFilepathsProvider"
+                 type="Klevu\PlatformPipelines\Service\Provider\PipelineConfigurationOverridesFilepathsProvider">
+        <arguments>
+            <argument name="generatedConfigurationOverridesFilepathProvider"
+                      xsi:type="object">Klevu\AnalyticsOrderSync\Service\Provider\GeneratedConfigurationOverridesFilepathProvider</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Klevu\AnalyticsOrderSync\Service\ConfigurationOverridesHandler"
+                 type="Klevu\Analytics\Service\ConfigurationOverridesHandler">
+        <arguments>
+            <argument name="generatedConfigurationOverridesFilepathProvider"
+                      xsi:type="object">Klevu\AnalyticsOrderSync\Service\Provider\GeneratedConfigurationOverridesFilepathProvider</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Klevu\AnalyticsOrderSync\Service\ConfigurationOverridesHandler\Force"
+                 type="Klevu\AnalyticsOrderSync\Service\ConfigurationOverridesHandler">
+        <arguments>
+            <argument name="forceFileRegeneration" xsi:type="boolean">true</argument>
+        </arguments>
+    </virtualType>
+
     <!-- Magento Objects -->
     <type name="Magento\Sales\Api\OrderRepositoryInterface">
         <plugin name="klevu_set_order_sync_status" type="Klevu\AnalyticsOrderSync\Plugin\Sales\OrderRepository\SetOrderSyncExtensionAttributesPlugin"/>
@@ -229,6 +277,16 @@
     </type>
 
     <!-- Console -->
+    <type name="Klevu\Analytics\Console\Command\ConfigurationOverridesRegenerateCommand">
+        <arguments>
+            <argument name="configurationOverridesHandlers" xsi:type="array">
+                <item name="order" xsi:type="array">
+                    <item name="sync" xsi:type="object">Klevu\AnalyticsOrderSync\Service\ConfigurationOverridesHandler</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
     <type name="Magento\Framework\Console\CommandList">
         <arguments>
             <argument name="commands" xsi:type="array">

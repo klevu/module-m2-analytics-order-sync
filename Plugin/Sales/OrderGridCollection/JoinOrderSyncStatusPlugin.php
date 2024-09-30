@@ -12,6 +12,7 @@ use Klevu\AnalyticsOrderSync\Constants;
 use Klevu\AnalyticsOrderSync\Model\ResourceModel\SyncOrder as SyncOrderResource;
 use Klevu\AnalyticsOrderSync\Model\Source\SyncOrder\Statuses;
 use Klevu\AnalyticsOrderSync\Model\SyncOrder as SyncOrderModel;
+use Magento\Framework\DB\Sql\ExpressionFactory;
 use Magento\Sales\Model\ResourceModel\Order\Grid\Collection as OrderGridCollection;
 use Psr\Log\LoggerInterface;
 
@@ -22,20 +23,20 @@ class JoinOrderSyncStatusPlugin
      */
     private readonly LoggerInterface $logger;
     /**
-     * @var \Zend_Db_ExprFactory
+     * @var ExpressionFactory
      */
-    private readonly \Zend_Db_ExprFactory $zendDbExpressionFactory;
+    private readonly ExpressionFactory $expressionFactory;
 
     /**
      * @param LoggerInterface $logger
-     * @param \Zend_Db_ExprFactory $zendDbExpressionFactory
+     * @param ExpressionFactory $expressionFactory
      */
     public function __construct(
         LoggerInterface $logger,
-        \Zend_Db_ExprFactory $zendDbExpressionFactory,
+        ExpressionFactory $expressionFactory,
     ) {
         $this->logger = $logger;
-        $this->zendDbExpressionFactory = $zendDbExpressionFactory;
+        $this->expressionFactory = $expressionFactory;
     }
 
     /**
@@ -62,7 +63,7 @@ class JoinOrderSyncStatusPlugin
             );
 
             $select = $subject->getSelect();
-            $syncStatusExpression = $this->zendDbExpressionFactory->create([
+            $syncStatusExpression = $this->expressionFactory->create([
                 'expression' => sprintf(
                     'IFNULL(%s.%s, "%s")',
                     $syncOrderTableName,

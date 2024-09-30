@@ -536,6 +536,7 @@ class CheckDuplicateOrderIpsTest extends TestCase
             klevuApiKey: 'klevu-9876543210',
             syncEnabled: true,
         );
+        $this->initOrderSyncEnabled(true);
 
         $fixtures = [
             $enabledStore1->getCode() => array_merge(

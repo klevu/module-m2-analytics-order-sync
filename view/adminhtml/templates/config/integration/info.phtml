@@ -52,9 +52,9 @@ $escaper = $escaperViewModel->getEscaper();
             <p>
                 <?= $escaper->escapeHtml(
                     data: __(
-                        'Our %1Knowledgebase%2 contains in-depth guides and articles on integrating Klevu with '
-                        . 'Magento. Some pertinent ones can be found below:',
-                        '<a href="https://help.klevu.com/support/solutions/5000174077" target="_blank">',
+                        'Our %1Documentation%2 contains in-depth guides and articles on Klevu Analytics. '
+                        . 'Some pertinent ones can be found below:',
+                        '<a href="https://docs.klevu.com/klevu-magento-v4/analytics-overview" target="_blank">',
                         '</a>',
                     )->render(),
                     allowedTags: ['a'],
@@ -62,35 +62,24 @@ $escaper = $escaperViewModel->getEscaper();
             </p>
             <ul style="margin-left: 20px;">
                 <li>
-                    <a href=""
+                    <a href="https://docs.klevu.com/klevu-magento-v4/analytics-user-interface"
                        target="_blank"><?= $escaper->escapeHtml(
-                           __('Configuring sync schedules, including via external cron')->render(),
+                           __('Analytics User Interface')->render(),
                         ) ?></a>
                 </li>
                 <li>
-                    <a href=""
+                    <a href="https://docs.klevu.com/klevu-magento-v4/analytics-order-sync-history"
                        target="_blank"><?= $escaper->escapeHtml(
-                           __('Viewing the sync status and history of individual orders')->render(),
+                           __('Order Sync History')->render(),
                         ) ?></a>
                 </li>
                 <li>
-                    <a href=""
+                    <a href="https://docs.klevu.com/klevu-magento-v4/analytics-faqs-and-troubleshooting"
                        target="_blank"><?= $escaper->escapeHtml(
-                           __('Debugging and troubleshooting common issues')->render(),
+                           __('FAQs and troubleshooting')->render(),
                         ) ?></a>
                 </li>
             </ul>
-            <p>
-                <?= $escaper->escapeHtml(
-                    data: __(
-                        'You can also refer to our %1developer documentation%2 if you need to customise the '
-                        . 'order synchronisation behaviour.',
-                        '<a href="" target="_blank">',
-                        '</a>',
-                    )->render(),
-                    allowedTags: ['a'],
-                ) ?>
-            </p>
         </section>
     </div>
 </section>

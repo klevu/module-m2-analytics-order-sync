@@ -71,11 +71,10 @@ Configuration,Configuration
 "You can find settings to update sync configuration, including status and automated schedule, under %1Klevu%2 &gt; %1Data Sync%2 &gt; %1Order Analytics%2.","You can find settings to update sync configuration, including status and automated schedule, under %1Klevu%2 &gt; %1Data Sync%2 &gt; %1Order Analytics%2."
 "Advanced configuration options can be found under %1Klevu%2 &gt; %1Developer Settings%2 &gt; %1Order Analytics%2.","Advanced configuration options can be found under %1Klevu%2 &gt; %1Developer Settings%2 &gt; %1Order Analytics%2."
 "Useful Links","Useful Links"
-"Our %1Knowledgebase%2 contains in-depth guides and articles on integrating Klevu with Magento. Some pertinent ones can be found below:","Our %1Knowledgebase%2 contains in-depth guides and articles on integrating Klevu with Magento. Some pertinent ones can be found below:"
-"Configuring sync schedules, including via external cron","Configuring sync schedules, including via external cron"
-"Viewing the sync status and history of individual orders","Viewing the sync status and history of individual orders"
-"Debugging and troubleshooting common issues","Debugging and troubleshooting common issues"
-"You can also refer to our %1developer documentation%2 if you need to customise the order synchronisation behaviour.","You can also refer to our %1developer documentation%2 if you need to customise the order synchronisation behaviour."
+"Our %1Documentation%2 contains in-depth guides and articles on Klevu Analytics. Some pertinent ones can be found below:","Our %1Documentation%2 contains in-depth guides and articles on Klevu Analytics. Some pertinent ones can be found below:"
+"Analytics User Interface","Analytics User Interface"
+"Order Sync History","Order Sync History"
+"FAQs and troubleshooting","FAQs and troubleshooting"
 Status,Status
 Attempts,Attempts
 "%1 via %2","%1 via %2"
