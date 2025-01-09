@@ -6,9 +6,6 @@
 
 declare(strict_types=1);
 
-// phpcs:disable SlevomatCodingStandard.Classes.ClassStructure.IncorrectGroupOrder
-// phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-
 namespace Klevu\AnalyticsOrderSync\Test\Integration\Observer\Admin\System\Config;
 
 use Klevu\AnalyticsOrderSync\Constants;

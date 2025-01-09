@@ -6,9 +6,6 @@
 
 declare(strict_types=1);
 
-// phpcs:disable SlevomatCodingStandard.Classes.ClassStructure.IncorrectGroupOrder
-// phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-
 namespace Klevu\AnalyticsOrderSync\Test\Integration\Service\Provider;
 
 use Klevu\AnalyticsOrderSync\Exception\OrderNotFoundException;

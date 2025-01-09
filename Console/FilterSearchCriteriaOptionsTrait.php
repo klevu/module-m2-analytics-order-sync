@@ -24,7 +24,19 @@ trait FilterSearchCriteriaOptionsTrait
      */
     private function getOrderIdsToFilter(?array $orderIds): ?array
     {
-        return array_filter($orderIds ?? []) ?: null;
+        $orderIdsToFilter = array_filter($orderIds ?? []);
+
+        if (!$orderIdsToFilter) {
+            return null;
+        }
+
+        return array_filter(
+            array: $orderIdsToFilter,
+            callback: static fn (mixed $orderId): bool => (
+                (is_int($orderId) || ctype_digit($orderId))
+                && (int)$orderId > 0
+            ),
+        );
     }
 
     /**
@@ -51,8 +63,8 @@ trait FilterSearchCriteriaOptionsTrait
 
         $syncEnabledStores = $this->syncEnabledStoresProvider->get();
         $syncEnabledStoreIds = array_map(
-            static fn (StoreInterface $store): int => (int)$store->getId(),
-            $syncEnabledStores,
+            callback: static fn (StoreInterface $store): int => (int)$store->getId(),
+            array: $syncEnabledStores,
         );
         if (null === $storeIdsToFilter) {
             $storeIdsToFilter = $syncEnabledStoreIds;

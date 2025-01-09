@@ -87,6 +87,7 @@ class CheckDuplicateOrderIpsTest extends TestCase
 
     /**
      * @magentoAppIsolation enabled
+     * @magentoDbIsolation disabled
      */
     public function testExecute_SyncEnabledStores(): void
     {
@@ -193,6 +194,7 @@ class CheckDuplicateOrderIpsTest extends TestCase
 
     /**
      * @magentoAppIsolation enabled
+     * @magentoDbIsolation disabled
      */
     public function testExecute_SyncDisabledStores(): void
     {
@@ -291,6 +293,7 @@ class CheckDuplicateOrderIpsTest extends TestCase
 
     /**
      * @magentoAppIsolation enabled
+     * @magentoDbIsolation disabled
      */
     public function testExecute_PeriodDays(): void
     {
@@ -403,6 +406,7 @@ class CheckDuplicateOrderIpsTest extends TestCase
 
     /**
      * @magentoAppIsolation enabled
+     * @magentoDbIsolation disabled
      */
     public function testExecute_Threshold(): void
     {
@@ -516,6 +520,7 @@ class CheckDuplicateOrderIpsTest extends TestCase
 
     /**
      * @magentoAppIsolation enabled
+     * @magentoDbIsolation disabled
      */
     public function testExecute_XForwardedFor(): void
     {
