@@ -63,7 +63,8 @@
     <type name="Klevu\AnalyticsOrderSync\Cron\SyncOrders">
         <arguments>
             <argument name="orderSyncSearchCriteriaProvider" xsi:type="object">Klevu\AnalyticsOrderSync\Service\Provider\OrderSyncSearchCriteriaProvider\SyncOrder</argument>
-            <argument name="processEventsService" xsi:type="object">Klevu\AnalyticsOrderSync\Service\ProcessOrderEvents</argument>
+            <argument name="processEventsService" xsi:type="object">Klevu\AnalyticsOrderSync\Service\ProcessOrderEvents\Queued</argument>
+            <argument name="processEventsServiceForRetry" xsi:type="object">Klevu\AnalyticsOrderSync\Service\ProcessOrderEvents\Retry</argument>
         </arguments>
     </type>
     <type name="Klevu\AnalyticsOrderSync\Cron\RequeueStuckOrders">

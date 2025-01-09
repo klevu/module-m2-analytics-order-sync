@@ -112,9 +112,15 @@ class MigrateLegacyConfigurationSettings implements DataPatchInterface
         $legacySettings = $this->getLegacyConfigSettings();
 
         $legacyCronFrequency = $legacySettings[static::XML_PATH_LEGACY_SYNC_FREQUENCY]['default'][0]
-            ?? '0 2 * * *';
+            ?? null;
         $legacyCronFrequencyCustom = $legacySettings[static::XML_PATH_LEGACY_SYNC_FREQUENCY_CUSTOM]['default'][0]
             ?? null;
+
+        if (!$legacyCronFrequency && !$legacyCronFrequencyCustom) {
+            return;
+        }
+
+        $legacyCronFrequency ??= '0 2 * * *';
 
         $this->configWriter->save(
             path: Constants::XML_PATH_ORDER_SYNC_CRON_FREQUENCY,

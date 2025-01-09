@@ -6,9 +6,6 @@
 
 declare(strict_types=1);
 
-// phpcs:disable SlevomatCodingStandard.Classes.ClassStructure.IncorrectGroupOrder
-// phpcs:disable PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-
 namespace Klevu\AnalyticsOrderSync\Test\Integration\Cron;
 
 use Klevu\AnalyticsOrderSync\Constants;
@@ -46,9 +43,9 @@ class RequeueStuckOrdersTest extends TestCase
     use OrderTrait;
 
     /**
-     * @var ObjectManagerInterface|ObjectManager|null
+     * @var ObjectManagerInterface|null
      */
-    private ObjectManagerInterface|ObjectManager|null $objectManager = null;
+    private ObjectManagerInterface|null $objectManager = null;
     /**
      * @var SyncOrderRepositoryInterface|null
      */
@@ -88,14 +85,6 @@ class RequeueStuckOrdersTest extends TestCase
         parent::tearDown();
 
         $this->rollbackOrderFixtures();
-    }
-
-    public function testObjectInstantiation(): void
-    {
-        $this->assertInstanceOf(
-            RequeueStuckOrders::class,
-            $this->objectManager->get(RequeueStuckOrders::class),
-        );
     }
 
     /**

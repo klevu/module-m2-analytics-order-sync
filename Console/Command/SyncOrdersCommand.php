@@ -16,6 +16,9 @@ use Klevu\AnalyticsOrderSync\Console\FilterSearchCriteriaOptionsTrait;
 use Klevu\AnalyticsOrderSync\Model\Source\SyncOrder\Statuses;
 use Klevu\AnalyticsOrderSyncApi\Service\Provider\OrderSyncSearchCriteriaProviderInterface;
 use Klevu\AnalyticsOrderSyncApi\Service\Provider\SyncEnabledStoresProviderInterface;
+use Klevu\Pipelines\Exception\ExtractionExceptionInterface;
+use Klevu\Pipelines\Exception\TransformationExceptionInterface;
+use Klevu\Pipelines\Exception\ValidationExceptionInterface;
 use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Framework\Serialize\SerializerInterface;
 use Symfony\Component\Console\Command\Command;
@@ -56,6 +59,10 @@ class SyncOrdersCommand extends Command
      * @var OptionSourceInterface
      */
     private readonly OptionSourceInterface $processEventsResultStatusOptionSource;
+    /**
+     * @var int
+     */
+    private readonly int $batchSize;
 
     /**
      * @param SerializerInterface $serializer
@@ -65,6 +72,7 @@ class SyncOrdersCommand extends Command
      * @param ProcessEventsServiceInterface $syncOrdersServiceForQueued
      * @param OptionSourceInterface $processEventsResultStatusOptionSource
      * @param string|null $name
+     * @param int|null $batchSize
      */
     public function __construct(
         SerializerInterface $serializer,
@@ -74,6 +82,7 @@ class SyncOrdersCommand extends Command
         ProcessEventsServiceInterface $syncOrdersServiceForQueued,
         OptionSourceInterface $processEventsResultStatusOptionSource,
         ?string $name = null,
+        ?int $batchSize = 250,
     ) {
         $this->serializer = $serializer;
         $this->syncOrderIdsForConsoleSearchCriteriaProvider = $syncOrderIdsForConsoleSearchCriteriaProvider;
@@ -81,6 +90,7 @@ class SyncOrdersCommand extends Command
         $this->syncOrdersServiceForRetry = $syncOrdersServiceForRetry;
         $this->syncOrdersServiceForQueued = $syncOrdersServiceForQueued;
         $this->processEventsResultStatusOptionSource = $processEventsResultStatusOptionSource;
+        $this->batchSize = $batchSize;
 
         parent::__construct($name);
     }
@@ -117,7 +127,11 @@ class SyncOrdersCommand extends Command
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
+     *
      * @return int
+     * @throws ExtractionExceptionInterface
+     * @throws TransformationExceptionInterface
+     * @throws ValidationExceptionInterface
      */
     protected function execute(
         InputInterface $input,
@@ -145,6 +159,13 @@ class SyncOrdersCommand extends Command
         $filterOrderIds = $this->getOrderIdsToFilter(
             orderIds: $input->getOption(static::OPTION_ORDER_ID),
         );
+        if ([] === $filterOrderIds) {
+            $output->writeln(
+                sprintf('<error>%s</error>', __('No valid order ids provided for sync')),
+            );
+
+            return self::INVALID;
+        }
 
         $output->writeln(
             sprintf('<info>%s</info>', __('Processing RETRY orders')),
@@ -152,7 +173,7 @@ class SyncOrdersCommand extends Command
         $retryResults = $this->executeSync(
             syncOrdersService: $this->syncOrdersServiceForRetry,
             filterOrderIds: $filterOrderIds,
-            filterSyncStatuses: [Statuses::RETRY->value],
+            filterSyncStatus: Statuses::RETRY,
             filterStoreIds: $filterStoreIds,
         );
         $this->writePipelineResultToConsole(
@@ -161,12 +182,12 @@ class SyncOrdersCommand extends Command
         );
 
         $output->writeln(
-            sprintf('<info>%s</info>', __('Processing queued orders')),
+            sprintf('<info>%s</info>', __('Processing QUEUED orders')),
         );
         $queuedResults = $this->executeSync(
             syncOrdersService: $this->syncOrdersServiceForQueued,
             filterOrderIds: $filterOrderIds,
-            filterSyncStatuses: [Statuses::QUEUED->value],
+            filterSyncStatus: Statuses::QUEUED,
             filterStoreIds: $filterStoreIds,
         );
         $this->writePipelineResultToConsole(
@@ -180,26 +201,45 @@ class SyncOrdersCommand extends Command
     /**
      * @param ProcessEventsServiceInterface $syncOrdersService
      * @param int[]|null $filterOrderIds
-     * @param string[] $filterSyncStatuses
+     * @param Statuses $filterSyncStatus
      * @param int[]|null $filterStoreIds
+     *
      * @return ProcessEventsResultInterface[]
+     * @throws ExtractionExceptionInterface
+     * @throws TransformationExceptionInterface
+     * @throws ValidationExceptionInterface
      */
     private function executeSync(
         ProcessEventsServiceInterface $syncOrdersService,
         ?array $filterOrderIds,
-        array $filterSyncStatuses,
+        Statuses $filterSyncStatus,
         ?array $filterStoreIds,
     ): array {
         $results = [];
+        if (!$filterSyncStatus->canInitiateSync()) {
+            return $results;
+        }
+
+        // Note on currentPage / allowed filterSyncStatus: (ref: KS-23736)
+        // We should never end with the same status after an iteration, as we pass in a syncable status
+        //  to this private method and the service should always end with a non-syncable status
+        // The exception would be where an exception prevents the sync order updating but does not kill
+        //  this loop. This scenario is exceptional and those orders will be picked up in the next execution
+        // Therefore, we do not pass the page to generate a searchCriteria, but do use it to record results
+
         $currentPage = 0;
+        $lastProcessedOrderIds = []; // To prevent infinite loop should the same batch be attempted multiple times
         do {
             $currentPage++;
 
             $searchCriteria = $this->syncOrderIdsForConsoleSearchCriteriaProvider->getSearchCriteria(
                 orderIds: $filterOrderIds,
-                syncStatuses: $filterSyncStatuses,
+                syncStatuses: [
+                    $filterSyncStatus->value,
+                ],
                 storeIds: $filterStoreIds,
-                currentPage: $currentPage,
+                currentPage: 1,
+                pageSize: $this->batchSize,
             );
 
             $result = $syncOrdersService->execute(
@@ -208,6 +248,16 @@ class SyncOrdersCommand extends Command
             );
 
             $results[$currentPage] = $result;
+
+            $processedOrderIds = array_column(
+                array: $result->getPipelineResult(),
+                column_key: 'orderId',
+            );
+            if (!array_diff($processedOrderIds, $lastProcessedOrderIds)) {
+                break;
+            }
+
+            $lastProcessedOrderIds = $processedOrderIds;
         } while (ProcessEventsResultStatuses::NOOP !== $result->getStatus());
 
         return $results;

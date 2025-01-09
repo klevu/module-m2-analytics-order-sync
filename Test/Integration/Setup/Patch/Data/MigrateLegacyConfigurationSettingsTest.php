@@ -115,7 +115,7 @@ class MigrateLegacyConfigurationSettingsTest extends TestCase
 
         $this->assertSame([], $aliases);
     }
-
+    
     /**
      * @magentoAppIsolation enabled
      * @magentoDbIsolation enabled
@@ -540,18 +540,21 @@ class MigrateLegacyConfigurationSettingsTest extends TestCase
     }
 
     /**
+     * @testWith [""]
+     *           ["0 *\/12 * * *"]
      * @magentoAppIsolation enabled
      * @magentoDbIsolation enabled
      */
-    public function testApply_MigrateOrderSyncCronConfiguration_Custom(): void
-    {
+    public function testApply_MigrateOrderSyncCronConfiguration_Custom(
+        string $legacySyncFrequency,
+    ): void {
         $this->deleteExistingKlevuConfig();
 
         $testStore1 = $this->storeFixturesPool->get('test_store_1');
         $testStore2 = $this->storeFixturesPool->get('test_store_2');
         $this->configWriter->save(
             path: MigrateLegacyConfigurationSettings::XML_PATH_LEGACY_SYNC_FREQUENCY,
-            value: '',
+            value: $legacySyncFrequency,
             scope: ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
             scopeId: 0,
         );
@@ -632,6 +635,127 @@ class MigrateLegacyConfigurationSettingsTest extends TestCase
                 $testStore2->getId(),
             ),
         );
+    }
+
+    /**
+     * @testWith [null, null]
+     *           ["", null]
+     *           [null, ""]
+     *           ["", ""]
+     * @magentoAppIsolation enabled
+     * @magentoDbIsolation enabled
+     */
+    public function testApply_MigrateOrderSyncCronConfiguration_None(
+        ?string $legacySyncFrequency,
+        ?string $legacySyncFrequencyCustom,
+    ): void {
+        $this->deleteExistingKlevuConfig();
+
+        $testStore1 = $this->storeFixturesPool->get('test_store_1');
+        $testStore2 = $this->storeFixturesPool->get('test_store_2');
+        if (null !== $legacySyncFrequency) {
+            $this->configWriter->save(
+                path: MigrateLegacyConfigurationSettings::XML_PATH_LEGACY_SYNC_FREQUENCY,
+                value: $legacySyncFrequency,
+                scope: ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+                scopeId: 0,
+            );
+        }
+        if (null !== $legacySyncFrequencyCustom) {
+            $this->configWriter->save(
+                path: MigrateLegacyConfigurationSettings::XML_PATH_LEGACY_SYNC_FREQUENCY_CUSTOM,
+                value: $legacySyncFrequencyCustom,
+                scope: ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+                scopeId: 0,
+            );
+        }
+        // Ensure other settings still get migrated
+        $this->configWriter->save(
+            path: MigrateLegacyConfigurationSettings::XML_PATH_LEGACY_SYNC_ENABLED,
+            value: '0',
+            scope: ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+            scopeId: 0,
+        );
+        $this->configWriter->save(
+            path: MigrateLegacyConfigurationSettings::XML_PATH_LEGACY_IP_ADDRESS_ATTRIBUTE,
+            value: 'x_forwarded_for',
+        );
+        
+        $this->scopeConfig->clean();
+
+        $this->assertInitialConfig();
+
+        $migrateLegacyConfigurationSettingsPatch = $this->instantiateTestObject();
+
+        $migrateLegacyConfigurationSettingsPatch->apply();
+        $this->scopeConfig->clean();
+
+        $storeIds = [
+            '1',
+            $testStore1->getId(),
+            $testStore2->getId(),
+        ];
+
+        $this->assertSame(
+            expected: '*/5 * * * *',
+            actual: $this->scopeConfig->getValue(
+                Constants::XML_PATH_ORDER_SYNC_CRON_FREQUENCY,
+                ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+            ),
+        );
+        $this->assertSame(
+            expected: '*/5 * * * *',
+            actual: $this->scopeConfig->getValue(
+                Constants::XML_PATH_ORDER_SYNC_CRON_EXPR,
+                ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+            ),
+        );
+        $this->assertFalse(
+            condition: $this->scopeConfig->isSetFlag(
+                Constants::XML_PATH_ORDER_SYNC_ENABLED,
+                ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+            ),
+        );
+        $this->assertSame(
+            expected: 'x_forwarded_for',
+            actual: $this->scopeConfig->getValue(
+                Constants::XML_PATH_ORDER_SYNC_IP_ADDRESS_ATTRIBUTE,
+                ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+            ),
+        );
+        foreach ($storeIds as $storeId) {
+            $this->assertSame(
+                expected: '*/5 * * * *',
+                actual: $this->scopeConfig->getValue(
+                    Constants::XML_PATH_ORDER_SYNC_CRON_FREQUENCY,
+                    ScopeInterface::SCOPE_STORES,
+                    $storeId,
+                ),
+            );
+            $this->assertSame(
+                expected: '*/5 * * * *',
+                actual: $this->scopeConfig->getValue(
+                    Constants::XML_PATH_ORDER_SYNC_CRON_EXPR,
+                    ScopeInterface::SCOPE_STORES,
+                    $storeId,
+                ),
+            );
+            $this->assertFalse(
+                condition: $this->scopeConfig->isSetFlag(
+                    Constants::XML_PATH_ORDER_SYNC_ENABLED,
+                    ScopeInterface::SCOPE_STORES,
+                    $storeId,
+                ),
+            );
+            $this->assertSame(
+                expected: 'x_forwarded_for',
+                actual: $this->scopeConfig->getValue(
+                    Constants::XML_PATH_ORDER_SYNC_IP_ADDRESS_ATTRIBUTE,
+                    ScopeInterface::SCOPE_STORES,
+                    $storeId,
+                ),
+            );
+        }
     }
 
     /**

@@ -311,8 +311,8 @@ trait CreateOrderInStoreTrait
         }
 
         switch ($syncStatus) {
-            case Statuses::QUEUED:
             case Statuses::RETRY:
+            case Statuses::QUEUED:
             case Statuses::PARTIAL:
                 /** @var QueueOrderForSyncActionInterface $queueOrderForSyncAction */
                 $queueOrderForSyncAction = $this->objectManager->get(QueueOrderForSyncActionInterface::class);
@@ -347,9 +347,11 @@ trait CreateOrderInStoreTrait
         }
 
         if (null !== $attempts) {
+            $this->syncOrderRepository->clearCache();
             $syncOrder = $this->syncOrderRepository->getByOrderId(
                 orderId: (int)$order->getEntityId(),
             );
+            $syncOrder->setStatus($syncStatus->value);
             $syncOrder->setAttempts($attempts);
             $this->syncOrderRepository->save($syncOrder);
         }
