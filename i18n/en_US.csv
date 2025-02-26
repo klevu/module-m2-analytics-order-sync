@@ -58,8 +58,6 @@ Success,Success
 "Cannot create an order sync record for order id #%1: Order not found","Cannot create an order sync record for order id #%1: Order not found"
 "Order found processing after %1 minute threshold","Order found processing after %1 minute threshold"
 "Test Exception Message","Test Exception Message"
-bar,bar
-foo,foo
 "Sync Status ""%1"" cannot initiate sync","Sync Status ""%1"" cannot initiate sync"
 "Order status ""%1"" is excluded by configuration in store %2","Order status ""%1"" is excluded by configuration in store %2"
 "Server-side order data processing is disabled. Conversion rate metrics will not be available in KMC.","Server-side order data processing is disabled. Conversion rate metrics will not be available in KMC."
@@ -171,3 +169,9 @@ Attempts,Attempts
                 This setting applies to orders which failed to sync after the configured maximum attempts."
 Continue,Continue
 "Klevu Sync Status","Klevu Sync Status"
+Imports order items from older versions (pre 4.0.0) of the Klevu extension and queues for sync ,Imports order items from older versions (pre 4.0.0) of the Klevu extension and queues for sync
+"Migrating legacy order sync records for store ID %1... ","Migrating legacy order sync records for store ID %1... "
+"Complete in %1 seconds.","Complete in %1 seconds."
+"Migrating legacy order sync records for all integrated stores... ","Migrating legacy order sync records for all integrated stores... "
+"Check analytics logs for further details","Check analytics logs for further details"
+All specified store ids are invalid or not enabled for sync,All specified store ids are invalid or not enabled for sync

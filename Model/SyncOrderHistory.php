@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Klevu\AnalyticsOrderSync\Model;
 
 use Klevu\AnalyticsOrderSync\Model\ResourceModel\SyncOrderHistory as SyncOrderHistoryResource;
+use Klevu\AnalyticsOrderSync\Model\Source\SyncOrderHistory\Actions;
 use Klevu\AnalyticsOrderSyncApi\Api\Data\SyncOrderHistoryInterface;
 use Magento\Framework\Model\AbstractModel;
 
@@ -118,7 +119,9 @@ class SyncOrderHistory extends AbstractModel implements SyncOrderHistoryInterfac
     {
         $action = $this->getData(static::FIELD_ACTION);
         if (!is_string($action) && null !== $action) {
-            $action = (string)$action;
+            $action = ($action instanceof Actions)
+                ? $action->value
+                : (string)$action;
             $this->setAction($action);
         }
 

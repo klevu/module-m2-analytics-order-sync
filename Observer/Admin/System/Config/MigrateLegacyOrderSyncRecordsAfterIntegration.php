@@ -6,12 +6,13 @@
 
 declare(strict_types=1);
 
-namespace Klevu\AnalyticsOrderSync\Setup\Patch\Data;
+namespace Klevu\AnalyticsOrderSync\Observer\Admin\System\Config;
 
 use Klevu\AnalyticsOrderSync\Service\Action\ScheduleMigrateLegacyOrderSyncRecordsCron;
-use Magento\Framework\Setup\Patch\DataPatchInterface;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
 
-class MigrateLegacyOrderSyncRecords implements DataPatchInterface
+class MigrateLegacyOrderSyncRecordsAfterIntegration implements ObserverInterface
 {
     /**
      * @var ScheduleMigrateLegacyOrderSyncRecordsCron
@@ -28,28 +29,13 @@ class MigrateLegacyOrderSyncRecords implements DataPatchInterface
     }
 
     /**
-     * @return string[]
+     * @param Observer $observer
+     *
+     * @return void
      */
-    public function getAliases(): array
-    {
-        return [];
-    }
-
-    /**
-     * @return $this
-     */
-    public function apply(): self
-    {
+    public function execute(
+        Observer $observer, // phpcs:ignore SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter
+    ): void {
         $this->scheduleMigrateLegacyOrderSyncRecordsCronAction->execute();
-
-        return $this;
-    }
-
-    /**
-     * @return string[]
-     */
-    public static function getDependencies(): array
-    {
-        return [];
     }
 }

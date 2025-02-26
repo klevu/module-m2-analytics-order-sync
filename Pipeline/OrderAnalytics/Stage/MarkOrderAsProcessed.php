@@ -13,8 +13,10 @@ use Klevu\AnalyticsOrderSync\Model\Source\SyncOrder\Statuses;
 use Klevu\AnalyticsOrderSyncApi\Api\MarkOrderAsProcessedActionInterface;
 use Klevu\AnalyticsOrderSyncApi\Service\Action\ProcessFailedOrderSyncActionInterface;
 use Klevu\Pipelines\Exception\ExtractionException;
+use Klevu\Pipelines\Exception\ExtractionExceptionInterface;
 use Klevu\Pipelines\Exception\Pipeline\InvalidPipelineArgumentsException;
 use Klevu\Pipelines\Exception\Pipeline\InvalidPipelinePayloadException;
+use Klevu\Pipelines\Exception\TransformationExceptionInterface;
 use Klevu\Pipelines\Extractor\Extractor;
 use Klevu\Pipelines\Model\Extraction;
 use Klevu\Pipelines\Parser\ArgumentConverter;
@@ -157,7 +159,10 @@ class MarkOrderAsProcessed implements PipelineInterface
      * @param mixed $resultArgument
      * @param mixed $payload
      * @param ?\ArrayAccess<int|string, mixed> $context
+     *
      * @return bool
+     * @throws ExtractionExceptionInterface
+     * @throws TransformationExceptionInterface
      */
     private function getResult(
         mixed $resultArgument,

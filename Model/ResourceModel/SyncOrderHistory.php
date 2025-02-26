@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Klevu\AnalyticsOrderSync\Model\ResourceModel;
 
 use Klevu\AnalyticsOrderSync\Model\SyncOrderHistory as SyncOrderHistoryModel;
+use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\ResourceModel\Db\AbstractDb;
 
 class SyncOrderHistory extends AbstractDb
@@ -37,5 +38,25 @@ class SyncOrderHistory extends AbstractDb
             mainTable: static::TABLE,
             idFieldName: static::ID_FIELD_NAME,
         );
+    }
+
+    /**
+     * @param AbstractModel $object
+     *
+     * @return SyncOrderHistory
+     */
+    protected function _beforeSave(AbstractModel $object): self
+    {
+        if ($object instanceof SyncOrderHistoryModel) {
+            // This ensures that if a record has been created using setData, values are correct for the DB
+            $object->getEntityId();
+            $object->getSyncOrderId();
+            $object->getTimestamp();
+            $object->getAction();
+            $object->getVia();
+            $object->getResult();
+        }
+
+        return parent::_beforeSave($object);
     }
 }
