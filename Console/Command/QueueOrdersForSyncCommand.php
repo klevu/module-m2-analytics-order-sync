@@ -112,7 +112,7 @@ class QueueOrdersForSyncCommand extends Command
             sprintf('<info>%s</info>', __('Queueing orders for sync')),
         );
 
-        $return = self::SUCCESS;
+        $return = static::SUCCESS;
         $filterStoreIds = $this->getStoreIdsToFilter(
             storeIds: $input->getOption(static::OPTION_STORE_ID),
             ignoreSyncEnabledFlag: $input->getOption(static::OPTION_IGNORE_SYNC_ENABLED_FLAG),
@@ -128,7 +128,7 @@ class QueueOrdersForSyncCommand extends Command
                 )),
             );
 
-            return self::FAILURE;
+            return static::FAILURE;
         }
 
         $filterOrderIds = $this->getOrderIdsToFilter(
@@ -157,7 +157,7 @@ class QueueOrdersForSyncCommand extends Command
                     output: $output,
                 );
                 if (!$result) {
-                    $return = self::FAILURE;
+                    $return = static::FAILURE;
                 }
             }
 

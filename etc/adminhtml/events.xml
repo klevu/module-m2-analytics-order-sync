@@ -1,8 +1,18 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Copyright © Klevu Oy. All rights reserved. See LICENSE.txt for license details. -->
+
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+
     <event name="admin_system_config_changed_section_klevu_data_sync">
         <observer name="klevu_analyticsOrderSync_adminSystemConfig_updateOrderSyncCron"
                   instance="Klevu\AnalyticsOrderSync\Observer\Admin\System\Config\UpdateOrderSyncCron" />
     </event>
+
+    <event name="klevu_integrate_api_keys_after">
+        <observer name="klevu_analyticsOrderSync_migrateLegacyOrderSyncRecords"
+                  instance="Klevu\AnalyticsOrderSync\Observer\Admin\System\Config\MigrateLegacyOrderSyncRecordsAfterIntegration" />
+    </event>
+
 </config>

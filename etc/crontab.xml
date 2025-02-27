@@ -22,5 +22,10 @@
              method="execute">
             <schedule>0 1 * * *</schedule>
         </job>
+        <job name="klevu_analytics_migrate_legacy_order_sync_records"
+             instance="Klevu\AnalyticsOrderSync\Cron\MigrateLegacyOrderSyncRecords"
+             method="execute">
+            <schedule>0 0 31 2 *</schedule>
+        </job>
     </group>
 </config>

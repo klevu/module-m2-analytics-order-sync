@@ -22,6 +22,7 @@ use Klevu\TestFixtures\Traits\ObjectInstantiationTrait;
 use Klevu\TestFixtures\Traits\TestImplementsInterfaceTrait;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\DataObject;
+use Magento\Framework\Event\ConfigInterface as EventConfig;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -37,12 +38,16 @@ use TddWizard\Fixtures\Sales\ShipmentBuilder;
 
 /**
  * @method QueueOrderForSync instantiateTestObject(?array $arguments = null)
+ * @magentoAppArea global
  */
 class QueueOrderForSyncTest extends TestCase
 {
     use ObjectInstantiationTrait;
     use TestImplementsInterfaceTrait;
     use OrderTrait;
+
+    private const OBSERVER_NAME = 'klevu_analyticsOrderSync_queueOrderForSync';
+    private const EVENT_NAME = 'sales_model_service_quote_submit_success';
 
     /**
      * @var ObjectManagerInterface|ObjectManager|null
@@ -88,6 +93,48 @@ class QueueOrderForSyncTest extends TestCase
         parent::tearDown();
 
         $this->rollbackOrderFixtures();
+    }
+
+    /**
+     * @magentoAppArea global
+     */
+    public function testObserver_IsConfigured_InGlobalScope(): void
+    {
+        $observerConfig = $this->objectManager->create(EventConfig::class);
+        $observers = $observerConfig->getObservers(self::EVENT_NAME);
+
+        $this->assertArrayHasKey(
+            key: self::OBSERVER_NAME,
+            array: $observers,
+        );
+        $this->assertSame(
+            expected: ltrim(
+                string: QueueOrderForSync::class,
+                characters: '\\',
+            ),
+            actual: $observers[self::OBSERVER_NAME]['instance'],
+        );
+    }
+
+    /**
+     * @magentoAppArea adminhtml
+     */
+    public function testObserver_IsConfiguredInAdminScope(): void
+    {
+        $observerConfig = $this->objectManager->create(EventConfig::class);
+        $observers = $observerConfig->getObservers(self::EVENT_NAME);
+
+        $this->assertArrayHasKey(
+            key: self::OBSERVER_NAME,
+            array: $observers,
+        );
+        $this->assertSame(
+            expected: ltrim(
+                string: QueueOrderForSync::class,
+                characters: '\\',
+            ),
+            actual: $observers[self::OBSERVER_NAME]['instance'],
+        );
     }
 
     public function testInvalidObserverEvent(): void

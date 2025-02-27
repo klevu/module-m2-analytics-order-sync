@@ -123,16 +123,16 @@ class QueueOrdersForSyncCommandTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            'No stores enabled for sync',
-            $tester->getDisplay(),
+            needle: 'No stores enabled for sync',
+            haystack: $tester->getDisplay(),
         );
         $this->assertStringContainsString(
-            'Enable sync for selected stores or run with the --ignore-sync-enabled-flag option',
-            $tester->getDisplay(),
+            needle: 'Enable sync for selected stores or run with the --ignore-sync-enabled-flag option',
+            haystack: $tester->getDisplay(),
         );
         $this->assertSame(
-            QueueOrdersForSyncCommand::FAILURE,
-            $tester->getStatusCode(),
+            expected: QueueOrdersForSyncCommand::FAILURE,
+            actual: $tester->getStatusCode(),
         );
 
         try {
@@ -199,16 +199,16 @@ class QueueOrdersForSyncCommandTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            'No stores enabled for sync',
-            $tester->getDisplay(),
+            needle: 'No stores enabled for sync',
+            haystack: $tester->getDisplay(),
         );
         $this->assertStringContainsString(
-            'Enable sync for selected stores or run with the --ignore-sync-enabled-flag option',
-            $tester->getDisplay(),
+            needle: 'Enable sync for selected stores or run with the --ignore-sync-enabled-flag option',
+            haystack: $tester->getDisplay(),
         );
         $this->assertSame(
-            QueueOrdersForSyncCommand::FAILURE,
-            $tester->getStatusCode(),
+            expected: QueueOrdersForSyncCommand::FAILURE,
+            actual: $tester->getStatusCode(),
         );
 
         try {
@@ -291,8 +291,8 @@ class QueueOrdersForSyncCommandTest extends TestCase
             $tester->getDisplay(),
         );
         $this->assertSame(
-            QueueOrdersForSyncCommand::SUCCESS,
-            $tester->getStatusCode(),
+            expected: QueueOrdersForSyncCommand::SUCCESS,
+            actual: $tester->getStatusCode(),
         );
 
         $syncOrder = $this->syncOrderRepository->getByOrderId((int)$order->getEntityId());
@@ -304,8 +304,8 @@ class QueueOrdersForSyncCommandTest extends TestCase
         $this->assertSame(0, $syncOrder->getAttempts());
 
         $this->assertStringContainsString(
-            'Queueing order id #' . $order->getEntityId() . ': OK',
-            $tester->getDisplay(),
+            needle: 'Queueing order id #' . $order->getEntityId() . ': OK',
+            haystack: $tester->getDisplay(),
         );
     }
 
@@ -364,8 +364,8 @@ class QueueOrdersForSyncCommandTest extends TestCase
         $this->assertSame(Statuses::QUEUED->value, $syncOrder2->getStatus());
 
         $this->assertStringContainsString(
-            'Queueing order id #' . $order2->getEntityId() . ': OK',
-            $tester->getDisplay(),
+            needle: 'Queueing order id #' . $order2->getEntityId() . ': OK',
+            haystack: $tester->getDisplay(),
         );
     }
 
@@ -434,12 +434,12 @@ class QueueOrdersForSyncCommandTest extends TestCase
         $this->assertSame(Statuses::SYNCED->value, $syncOrder3->getStatus());
 
         $this->assertStringContainsString(
-            'Queueing order id #' . $order1->getEntityId() . ': OK',
-            $tester->getDisplay(),
+            needle: 'Queueing order id #' . $order1->getEntityId() . ': OK',
+            haystack: $tester->getDisplay(),
         );
         $this->assertStringContainsString(
-            'Queueing order id #' . $order2->getEntityId() . ': OK',
-            $tester->getDisplay(),
+            needle: 'Queueing order id #' . $order2->getEntityId() . ': OK',
+            haystack: $tester->getDisplay(),
         );
     }
 
@@ -518,8 +518,8 @@ class QueueOrdersForSyncCommandTest extends TestCase
         $this->assertSame(Statuses::SYNCED->value, $syncOrder3->getStatus());
 
         $this->assertStringContainsString(
-            'Queueing order id #' . $order1->getEntityId() . ': OK',
-            $tester->getDisplay(),
+            needle: 'Queueing order id #' . $order1->getEntityId() . ': OK',
+            haystack: $tester->getDisplay(),
         );
     }
 
@@ -609,8 +609,8 @@ class QueueOrdersForSyncCommandTest extends TestCase
         $this->assertSame(Statuses::SYNCED->value, $syncOrder3->getStatus());
 
         $this->assertStringContainsString(
-            'No matching orders found to queue',
-            $tester->getDisplay(),
+            needle: 'No matching orders found to queue',
+            haystack: $tester->getDisplay(),
         );
     }
 
@@ -656,12 +656,12 @@ class QueueOrdersForSyncCommandTest extends TestCase
         );
 
         $this->assertStringContainsString(
-            'Queueing order id #' . $order->getEntityId() . ': ERROR',
-            $tester->getDisplay(),
+            needle: 'Queueing order id #' . $order->getEntityId() . ': ERROR',
+            haystack: $tester->getDisplay(),
         );
         $this->assertStringContainsString(
-            'Test Exception Message',
-            $tester->getDisplay(),
+            needle: 'Test Exception Message',
+            haystack: $tester->getDisplay(),
         );
     }
 }

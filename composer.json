@@ -13,8 +13,8 @@
         "magento/module-sales": ">= 103.0.4",
         "magento/module-store": "*",
         "magento/module-ui": ">= 101.2.4",
-        "klevu/module-m2-analytics": "^1.0.0",
-        "klevu/module-m2-analytics-order-sync-api": "^1.0.0",
+        "klevu/module-m2-analytics": "^1.1.0",
+        "klevu/module-m2-analytics-order-sync-api": "^2.0.0",
         "klevu/module-m2-configuration": "^1.0.0",
         "klevu/module-m2-logger": "^1.0.0",
         "klevu/module-m2-pipelines": "^1.0.0",
@@ -27,7 +27,7 @@
         "klevu/php-sdk": "@stable"
     },
     "type": "magento2-module",
-    "version": "1.0.2",
+    "version": "2.0.0",
     "license": [
         "MIT"
     ],

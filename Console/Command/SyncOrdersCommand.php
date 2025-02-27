@@ -137,7 +137,7 @@ class SyncOrdersCommand extends Command
         InputInterface $input,
         OutputInterface $output,
     ): int {
-        $return = self::SUCCESS;
+        $return = static::SUCCESS;
         $filterStoreIds = $this->getStoreIdsToFilter(
             storeIds: $input->getOption(static::OPTION_STORE_ID),
             ignoreSyncEnabledFlag: $input->getOption(static::OPTION_IGNORE_SYNC_ENABLED_FLAG),
@@ -153,7 +153,7 @@ class SyncOrdersCommand extends Command
                 )),
             );
 
-            return self::INVALID;
+            return static::INVALID;
         }
 
         $filterOrderIds = $this->getOrderIdsToFilter(

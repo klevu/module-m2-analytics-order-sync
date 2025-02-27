@@ -21,6 +21,8 @@
                 type="Klevu\AnalyticsOrderSync\Service\Action\MarkOrderAsProcessed"/>
     <preference for="Klevu\AnalyticsOrderSyncApi\Api\MarkOrderAsProcessingActionInterface"
                 type="Klevu\AnalyticsOrderSync\Service\Action\MarkOrderAsProcessing"/>
+    <preference for="Klevu\AnalyticsOrderSyncApi\Api\MigrateLegacyOrderSyncRecordsInterface"
+                type="Klevu\AnalyticsOrderSync\Service\MigrateLegacyOrderSyncRecords"/>
     <preference for="Klevu\AnalyticsOrderSyncApi\Api\RemoveSyncedOrderHistoryServiceInterface"
                 type="Klevu\AnalyticsOrderSync\Service\RemoveSyncedOrderHistory"/>
     <preference for="Klevu\AnalyticsOrderSyncApi\Api\RequeueStuckOrdersServiceInterface"
@@ -31,6 +33,15 @@
                 type="Klevu\AnalyticsOrderSync\Service\Action\ProcessFailedOrderSync"/>
     <preference for="Klevu\AnalyticsOrderSyncApi\Service\Action\ConsolidateCronConfigSettingsActionInterface"
                 type="Klevu\AnalyticsOrderSync\Service\Action\ConsolidateCronConfigSettings"/>
+    <preference for="Klevu\AnalyticsOrderSyncApi\Service\Action\ScheduleMigrateLegacyOrderSyncRecordsCronActionInterface"
+                type="Klevu\AnalyticsOrderSync\Service\Action\ScheduleMigrateLegacyOrderSyncRecordsCron"/>
+    <preference for="Klevu\AnalyticsOrderSyncApi\Service\Action\UpdateSyncOrderHistoryForOrderIdActionInterface"
+                type="Klevu\AnalyticsOrderSync\Service\Action\UpdateSyncOrderHistoryForOrderId"/>
+
+    <preference for="Klevu\AnalyticsOrderSyncApi\Service\Provider\LegacyDataProviderInterface"
+                type="Klevu\AnalyticsOrderSync\Service\Provider\LegacyDataProvider"/>
+    <preference for="Klevu\AnalyticsOrderSyncApi\Service\Provider\SyncStatusForLegacyOrderItemsProviderInterface"
+                type="Klevu\AnalyticsOrderSync\Service\Provider\SyncStatusForLegacyOrderItemsProvider"/>
 
     <preference for="Klevu\AnalyticsOrderSyncApi\Service\Provider\ConsolidatedGroupedProductOrderItemProviderInterface"
                 type="Klevu\AnalyticsOrderSync\Service\Provider\ConsolidatedGroupedProductOrderItemProvider"/>
@@ -114,6 +125,30 @@
         </arguments>
     </type>
 
+    <type name="Klevu\AnalyticsOrderSync\Service\Action\ScheduleMigrateLegacyOrderSyncRecordsCron">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Analytics\Logger\Logger</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\AnalyticsOrderSync\Service\Action\UpdateSyncOrderHistoryForOrderId">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Analytics\Logger\Logger</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\AnalyticsOrderSync\Service\MigrateLegacyOrderSyncRecords">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Analytics\Logger\Logger</argument>
+        </arguments>
+    </type>
+
+    <type name="Klevu\AnalyticsOrderSync\Service\Provider\LegacyDataProvider">
+        <arguments>
+            <argument name="logger" xsi:type="object">Klevu\Analytics\Logger\Logger</argument>
+        </arguments>
+    </type>
+
     <type name="Klevu\AnalyticsOrderSync\Service\Provider\OrderSyncEventsDataProvider">
         <arguments>
             <argument name="logger" xsi:type="object">Klevu\Analytics\Logger\Logger</argument>
@@ -194,12 +229,6 @@
             <argument name="storeIdFieldName" xsi:type="const">Klevu\AnalyticsOrderSync\Model\SyncOrder::FIELD_STORE_ID</argument>
         </arguments>
     </virtualType>
-
-    <type name="Klevu\AnalyticsOrderSync\Setup\Patch\Data\MigrateLegacyOrderSyncRecords">
-        <arguments>
-            <argument name="logger" xsi:type="object">Klevu\Analytics\Logger\Logger</argument>
-        </arguments>
-    </type>
 
     <type name="Klevu\AnalyticsOrderSync\Ui\Component\Listing\Column\SyncStatus">
         <arguments>
@@ -293,6 +322,7 @@
             <argument name="commands" xsi:type="array">
                 <item name="klevu_analytics_queue_order_for_sync" xsi:type="object">Klevu\AnalyticsOrderSync\Console\Command\QueueOrdersForSyncCommand\Proxy</item>
                 <item name="klevu_analytics_sync_orders" xsi:type="object">Klevu\AnalyticsOrderSync\Console\Command\SyncOrdersCommand\Proxy</item>
+                <item name="klevu_analytics_migrate_legacy_order_sync_records" xsi:type="object">Klevu\AnalyticsOrderSync\Console\Command\MigrateLegacyOrderSyncRecordsCommand\Proxy</item>
             </argument>
         </arguments>
     </type>
