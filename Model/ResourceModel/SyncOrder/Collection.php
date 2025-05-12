@@ -51,10 +51,8 @@ class Collection extends AbstractCollection
         LoggerInterface $logger,
         FetchStrategyInterface $fetchStrategy,
         ManagerInterface $eventManager,
-        // phpcs:disable SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue.NullabilityTypeMissing
-        AdapterInterface $connection = null,
-        AbstractDb $resource = null,
-        // phpcs:enable SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue.NullabilityTypeMissing
+        ?AdapterInterface $connection = null,
+        ?AbstractDb $resource = null,
     ) {
         parent::__construct(
             entityFactory: $entityFactory,
