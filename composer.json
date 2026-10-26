@@ -2,7 +2,7 @@
     "name": "klevu/module-m2-analytics-order-sync",
     "description": "Extends klevu/module-m2-analytics, adding order sync support",
     "require": {
-        "php": "~8.1.0|~8.2.0|~8.3.0|~8.4.0",
+        "php": "~8.1.0|~8.2.0|~8.3.0|~8.4.0|~8.5.0",
         "psr/log": "@stable",
         "magento/framework": ">= 103.0.4",
         "magento/module-backend": ">= 102.0.4",
@@ -27,7 +27,7 @@
         "klevu/php-sdk": "@stable"
     },
     "type": "magento2-module",
-    "version": "2.1.0",
+    "version": "2.1.1",
     "license": [
         "MIT"
     ],
