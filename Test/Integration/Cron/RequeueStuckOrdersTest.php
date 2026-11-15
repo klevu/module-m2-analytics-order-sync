@@ -238,6 +238,44 @@ class RequeueStuckOrdersTest extends TestCase
     /**
      * @magentoAppIsolation enabled
      */
+    public function testExecute_OrderOutwithThreshold_MaxAttemptsReached(): void
+    {
+        ConfigFixture::setGlobal(
+            path: Constants::XML_PATH_ORDER_SYNC_REQUEUE_PROCESSING_ORDERS_AFTER_MINUTES,
+            value: '15',
+        );
+        ConfigFixture::setGlobal(
+            path: Constants::XML_PATH_ORDER_SYNC_SYNC_ORDER_MAX_ATTEMPTS,
+            value: '3',
+        );
+
+        $order = $this->getOrderFixture(true);
+        $this->createSyncOrderFixturesForOrderId((int)$order->getEntityId(), 3);
+
+        $requeueStuckOrdersCron = $this->instantiateTestObject();
+        $requeueStuckOrdersCron->execute();
+
+        $syncOrder = $this->syncOrderRepository->getByOrderId((int)$order->getEntityId());
+        $this->assertSame(Statuses::ERROR->value, $syncOrder->getStatus());
+
+        $this->searchCriteriaBuilder->addFilter(
+            field: SyncOrderHistory::FIELD_SYNC_ORDER_ID,
+            value: $syncOrder->getEntityId(),
+        );
+        $this->searchCriteriaBuilder->addFilter(
+            field: SyncOrderHistory::FIELD_ACTION,
+            value: Actions::QUEUE->value,
+        );
+        $syncOrderHistoryResult = $this->syncOrderHistoryRepository->getList(
+            searchCriteria: $this->searchCriteriaBuilder->create(),
+        );
+
+        $this->assertSame(0, $syncOrderHistoryResult->getTotalCount());
+    }
+
+    /**
+     * @magentoAppIsolation enabled
+     */
     public function testExecute_QueueOrderThrowsException(): void
     {
         ConfigFixture::setGlobal(
@@ -321,17 +359,18 @@ class RequeueStuckOrdersTest extends TestCase
 
     /**
      * @param int $orderId
+     * @param int $attempts
      * @return void
      * @throws AlreadyExistsException
      * @throws CouldNotSaveException
      * @throws LocalizedException
      * @throws NoSuchEntityException
      */
-    private function createSyncOrderFixturesForOrderId(int $orderId): void
+    private function createSyncOrderFixturesForOrderId(int $orderId, int $attempts = 1): void
     {
         $syncOrder = $this->syncOrderRepository->getByOrderId($orderId);
         $syncOrder->setStatus(Statuses::PROCESSING->value);
-        $syncOrder->setAttempts(1);
+        $syncOrder->setAttempts($attempts);
         $this->syncOrderRepository->save($syncOrder);
 
         /** @var SyncOrderHistory $syncOrderHistory */
