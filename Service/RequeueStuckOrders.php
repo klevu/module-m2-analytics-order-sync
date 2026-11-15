@@ -17,10 +17,13 @@ use Klevu\AnalyticsOrderSyncApi\Api\Data\SyncOrderInterface;
 use Klevu\AnalyticsOrderSyncApi\Api\QueueOrderForSyncActionInterface;
 use Klevu\AnalyticsOrderSyncApi\Api\RequeueStuckOrdersServiceInterface;
 use Klevu\AnalyticsOrderSyncApi\Api\SyncOrderRepositoryInterface;
+use Klevu\AnalyticsOrderSyncApi\Service\Action\ProcessFailedOrderSyncActionInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Store\Model\ScopeInterface;
 
 class RequeueStuckOrders implements RequeueStuckOrdersServiceInterface
 {
@@ -44,6 +47,14 @@ class RequeueStuckOrders implements RequeueStuckOrdersServiceInterface
      * @var RequeueStuckOrdersResultInterfaceFactory
      */
     private readonly RequeueStuckOrdersResultInterfaceFactory $requeueStuckOrdersResultFactory;
+    /**
+     * @var ProcessFailedOrderSyncActionInterface
+     */
+    private readonly ProcessFailedOrderSyncActionInterface $processFailedOrderSyncAction;
+    /**
+     * @var OrderRepositoryInterface
+     */
+    private readonly OrderRepositoryInterface $orderRepository;
 
     /**
      * @param ScopeConfigInterface $scopeConfig
@@ -51,6 +62,8 @@ class RequeueStuckOrders implements RequeueStuckOrdersServiceInterface
      * @param SyncOrderRepositoryInterface $syncOrderRepository
      * @param QueueOrderForSyncActionInterface $queueOrderForSyncAction
      * @param RequeueStuckOrdersResultInterfaceFactory $requeueStuckOrdersResultFactory
+     * @param ProcessFailedOrderSyncActionInterface $processFailedOrderSyncAction
+     * @param OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -58,12 +71,16 @@ class RequeueStuckOrders implements RequeueStuckOrdersServiceInterface
         SyncOrderRepositoryInterface $syncOrderRepository,
         QueueOrderForSyncActionInterface $queueOrderForSyncAction,
         RequeueStuckOrdersResultInterfaceFactory $requeueStuckOrdersResultFactory,
+        ProcessFailedOrderSyncActionInterface $processFailedOrderSyncAction,
+        OrderRepositoryInterface $orderRepository,
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->syncOrderRepository = $syncOrderRepository;
         $this->queueOrderForSyncAction = $queueOrderForSyncAction;
         $this->requeueStuckOrdersResultFactory = $requeueStuckOrdersResultFactory;
+        $this->processFailedOrderSyncAction = $processFailedOrderSyncAction;
+        $this->orderRepository = $orderRepository;
     }
 
     /**
@@ -107,16 +124,25 @@ class RequeueStuckOrders implements RequeueStuckOrdersServiceInterface
         /** @var SyncOrderInterface $syncOrder */
         foreach ($stuckSyncOrders->getItems() as $syncOrder) {
             try {
-                $this->queueOrderForSyncAction->execute(
-                    orderId: $syncOrder->getOrderId(),
-                    via: $via,
-                    additionalInformation: [
-                        'reason' => (string)__(
-                            'Order found processing after %1 minute threshold',
-                            $thresholdInMinutes,
-                        ),
-                    ],
-                );
+                $additionalInformation = [
+                    'reason' => (string)__(
+                        'Order found processing after %1 minute threshold',
+                        $thresholdInMinutes,
+                    ),
+                ];
+                if ($this->hasReachedMaxAttempts($syncOrder)) {
+                    $this->processFailedOrderSyncAction->execute(
+                        order: $this->orderRepository->get($syncOrder->getOrderId()),
+                        via: $via,
+                        additionalInformation: $additionalInformation,
+                    );
+                } else {
+                    $this->queueOrderForSyncAction->execute(
+                        orderId: $syncOrder->getOrderId(),
+                        via: $via,
+                        additionalInformation: $additionalInformation,
+                    );
+                }
                 $successCount++;
             } catch (LocalizedException $exception) {
                 $result->addMessage(sprintf(
@@ -133,6 +159,24 @@ class RequeueStuckOrders implements RequeueStuckOrdersServiceInterface
         $result->setIsSuccess($successCount && !$errorCount);
 
         return $result;
+    }
+
+    /**
+     * @param SyncOrderInterface $syncOrder
+     * @return bool
+     */
+    private function hasReachedMaxAttempts(SyncOrderInterface $syncOrder): bool
+    {
+        $maxAttempts = $this->scopeConfig->getValue(
+            Constants::XML_PATH_ORDER_SYNC_SYNC_ORDER_MAX_ATTEMPTS,
+            ScopeInterface::SCOPE_STORES,
+            $syncOrder->getStoreId(),
+        );
+        $maxAttempts = (is_numeric($maxAttempts) && $maxAttempts > 0)
+            ? (int)$maxAttempts
+            : 1;
+
+        return $syncOrder->getAttempts() >= $maxAttempts;
     }
 
     /**
